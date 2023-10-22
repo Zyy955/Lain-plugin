@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+
+<head>
+    <style>
+        html,
+        body {
+            margin: 20px;
+            padding: 20px;
+            max-width: 800px;
+            width: auto;
+            height: auto;
+        }
+
+        body {
+            animation: gradient 40s ease infinite;
+            background: linear-gradient(45deg, #FAC9B8, #FFD8C2, #FFEFB2, #FFE4D4, #C2E4E8, #FFC7CE, #FEDCD2, #575040, #6de5dc, #B7E3E9, #FFDAB9, #76aee7, #FFE6E6, #B5EAD7, #F6D5E3, #F7EEA7, #FFDAC1, #B0E0E6, #FFB6C1, #F4F9C4);
+            background-size: 400% 400%;
+            font-family: 'Open Sans', sans-serif;
+            justify-content: center;
+            align-items: center;
+            padding: 20;
+            margin: 20;
+        }
+
+        @keyframes gradient {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        body:before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            background: rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(20px);
+            z-index: -1;
+        }
+
+        .message {
+            width: auto;
+            min-height: 0;
+            margin: 15px;
+            margin-top: 20px;
+            border-radius: 10px;
+            background-color: rgba(250, 250, 250, 0.724);
+            padding: 20px;
+            transition: 0.8s cubic-bezier(0.83, 0.02, 0.38, 1);
+            border: 2px solid #f5f5f5;
+            box-sizing: border-box;
+            scrollbar-width: thin;
+            scrollbar-color: #888 #f5f5f5;
+            line-height: 0.5;
+        }
+
+        .error {
+            width: auto;
+            height: auto;
+            min-height: 0;
+            margin: 15px;
+            margin-top: 3vh;
+            border-radius: 10px;
+            background-color: rgba(250, 250, 250, 0.724);
+            padding: 20px;
+            transition: 0.8s cubic-bezier(0.83, 0.02, 0.38, 1);
+            border: 2px solid #f5f5f5;
+            box-sizing: border-box;
+            scrollbar-width: thin;
+            scrollbar-color: #888 #f5f5f5;
+            white-space: normal;
+            word-wrap: break-word;
+            line-height: 1.5;
+            overflow-wrap: break-word;
+            word-wrap: break-word;
+        }
+
+        .author {
+            display: block;
+            font-size: 16px;
+            line-height: 24px;
+            color: #000000;
+            text-align: center;
+            padding-left: 20px
+        }
+
+        .normal-text {
+            word-wrap: break-word;
+            line-height: 3;
+        }
+    </style>
+
+    <script>
+        window.onload = function () {
+            const msg = "{{msg}}"
+            const old_div = document.getElementById('msg')
+
+            // 检查消息是否是一个Base64编码的图片
+            if (msg.startsWith('base64://')) {
+                const div = document.createElement('div')
+                div.classList.add('normal-text')
+
+                // 修改图片容器的宽度
+                document.body.style.maxWidth = "300px"
+
+                // 修改容器为居中显示
+                const _err = document.querySelector('.error')
+                _err.style.textAlign = 'center'
+                const _msg = document.querySelector('.message')
+                _msg.style.textAlign = 'center'
+
+                // 在循环之前添加一个p标签
+                old_div.innerHTML = '<p>请扫码查看：</p>'
+
+                // 图片
+                const img = document.createElement('img')
+                img.src = "data:image/png;base64," + msg.replace("base64://", "")
+                div.appendChild(img)
+                old_div.appendChild(div)
+            } else {
+                // 在循环之前添加一个p标签
+                old_div.innerHTML = '<p>原始消息：</p>'
+
+                const msg_split = msg.split('\n\n')
+                // 创建并插入div
+                for (let i = 0; i < msg_split.length; i++) {
+                    const div = document.createElement('div')
+                    div.classList.add('normal-text')
+
+                    const list = msg_split[i].split('\n')
+                    for (let j = 0; j < list.length; j++) {
+                        const text = document.createTextNode(list[j])
+                        div.appendChild(text)
+                    }
+                    old_div.appendChild(div)
+                }
+            }
+        }        
+    </script>
+
+</head>
+
+<body>
+    {{if typeof error === 'string'}}
+    <div class="error">
+        <p><b>初始链接：</b>{{error}}</p>
+    </div>
+    {{else if error && typeof error === 'object'}}
+    <div class="error">
+        <p><b>状态码：</b>{{error.code}}</p>
+        <p><b>错误原因：</b>{{error.message}}</p>
+        <p><b>错误标识符: </b>{{error.traceid}}</p>
+    </div>
+    {{/if}}
+
+    <div class="message" id="msg">
+    </div>
+    <div class="author"><b>Created By {{Yz.name}} <span>{{Yz.ver}}</span> & QQGulid-plugin
+            <span>{{guild}}</span></b></div>
+</body>
