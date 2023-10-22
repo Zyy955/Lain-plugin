@@ -1,3 +1,4 @@
+import SendMsg from "./sendMsg.js"
 import Api from "../../model/api.js"
 import log_msg from "../../model/log.js"
 import message from "../../model/message.js"
@@ -6,7 +7,6 @@ import pluginsLoader from "../../../../lib/plugins/loader.js"
 import { createOpenAPI, createWebsocket } from "qq-guild-bot"
 
 export default class guild {
-
     /** 传入基本配置 */
     constructor(Cfg) {
         /** 开发者id */
@@ -75,33 +75,26 @@ export default class guild {
         /** 构建基本参数 */
         Bot[this.id] = {
             ...Bot[this.id],
+            fl: new Map(),
+            gl: new Map(),
+            gml: new Map(),
             uin: this.id,
             guild_id: bot.id,
             nickname: bot.username,
             avatar: bot.avatar,
             stat: { start_time: Date.now() / 1000 },
             apk: { display: Bot.qg.guild.name, version: Bot.qg.guild.ver },
-            fl: new Map(),
-            gl: new Map(),
-            gml: new Map(),
             version: { id: "qg", name: "QQ频道Bot", version: Bot.qg.guild.guild_ver },
             pickGroup: (groupId) => {
                 const [guild_id, channel_id] = groupId.replace("qg_", "").split('-')
-                const data = {
-                    id: id,
-                    msg: {
-                        guild_id: guild_id,
-                        channel_id: channel_id
-                    },
-                    eventType: "MESSAGE_CREATE"
-                }
                 return {
-                    sendMsg: (reply, reference = false) => {
-                        return this.reply(data, reply, reference)
+                    sendMsg: async (msg, quote = false) => {
+                        const newMsg = new SendMsg(this.id, channel_id, "MESSAGE_CREATE")
+                        return await newMsg(msg, quote)
                     },
                     makeForwardMsg: async (forwardMsg) => {
                         return await message.makeForwardMsg(forwardMsg)
-                    },
+                    }
                 }
             }
         }
@@ -243,11 +236,11 @@ export default class guild {
     }
 
     /** 处理消息、转换格式 */
-    async reply(data, msg, reference) {
+    async reply(data, msg, quote) {
         if (msg === "开始执行重启，请稍等...") await this.restart(data)
         /** 处理云崽过来的消息 */
-        const SendMsg = (await import("../../model/SendMsg.js")).default
-        return await SendMsg.message(data, msg, reference)
+        const msg = (await import("../../model/SendMsg.js")).default
+        return await msg.message(data, msg, quote)
     }
 
     /** 保存重启到redis中 */

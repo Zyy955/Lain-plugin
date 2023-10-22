@@ -1,7 +1,6 @@
 import fs from "fs"
 import chalk from "chalk"
 import { URL } from "url"
-import Api from "./api.js"
 import lodash from "lodash"
 import qrcode from "qrcode"
 import fetch from "node-fetch"
@@ -9,15 +8,27 @@ import { FormData, Blob } from "node-fetch"
 import common from "../../../../lib/common/common.js"
 import puppeteer from "../../../../lib/puppeteer/puppeteer.js"
 
+export default class SendMsg {
+    /** 传入基本配置 */
+    constructor(id, receiveID, eventType, msg_id = false) {
+        /** 开发者id */
+        this.id = id
+        /** 接收id(私信消息、子频道消息) */
+        this.receiveID = receiveID
+        /** 消息类型 */
+        this.eventType = eventType
+        /** 触发消息id */
+        this.msg_id = msg_id
+    }
 
-export default new class SendMsg {
     /** 处理消息 */
-    async message(data, msg, quote) {
+    async message(msg, quote) {
+        /** 引用消息 */
         this.quote = quote
         /** 统一为数组 */
         msg = this.Array(msg)
         /** 转为api格式、打印日志、发送 */
-        return await this.qg_msg(data, msg, quote)
+        return await this.qg_msg(msg, quote)
     }
 
     /** 将云崽过来的消息全部统一格式存放到数组里面 */
@@ -53,11 +64,11 @@ export default new class SendMsg {
     }
 
     /** 转为频道格式的消息 */
-    async qg_msg(data, msg, quote) {
+    async qg_msg(msg, quote) {
         let image = {}
         let content = []
         const images = []
-        const data_msg = data.msg
+
         /** chatgpt-plugin */
         if (msg?.[0].type === "xml") msg = msg?.[0].msg
 
@@ -66,32 +77,32 @@ export default new class SendMsg {
             await common.sleep(200)
             switch (i.type) {
                 case "at":
-                    if (i.text === data_msg?.author?.username) content.push(`<@${data_msg?.author?.id}>`)
+                    if (i.text === Bot[this.id]?.nickname) content.push(`<@${Bot[this.id]?.guild_id}>`)
                     else content.push(`<@${String(i.qq == 0 ? i.id : i.qq).replace("qg_", "")}>`)
                     break
                 case "face":
                     content.push(`<emoji:${i.text}>`)
                     break
                 case "text":
-                    content.push(await this.urlHandler(data, i.text))
+                    content.push(await this.HandleURL(i.text))
                     break
                 case "image":
-                    /** 多图片只保留第一个一起发 其他分片发送 */
                     const img = await this.Base64(i)
                     if (Object.keys(image).length > 0) images.push(img)
+                    /** 分片处理图片 */
                     else image = img
                     break
                 case "forward":
                     /** 转发消息 */
                     if (Bot.qg.cfg.forwar) {
                         /** 构建请求参数、打印日志 */
-                        const SendMsg = await this.Construct_data(data, {
+                        const SendMsg = await this.Construct_data({
                             ...image || null,
-                            content: await this.urlHandler(data, i.text)
+                            content: await this.HandleURL(i.text)
                         }, false)
-                        await this.SendMsg(data, SendMsg)
+                        await this.SendMsg(SendMsg)
                     } else {
-                        content.push(await this.urlHandler(data, `${i.text}\n\n`))
+                        content.push(await this.HandleURL(`${i.text}\n\n`))
                     }
                     break
                 default:
@@ -103,8 +114,8 @@ export default new class SendMsg {
         content = content.join("").replace(/\n{1,2}$/g, '').replace(/\n{3,4}/g, '\n')
         const Api_msg = { content: content, ...image }
         if (!content && content === "" && Object.keys(image).length === 0) return
-        const SendMsg = await this.Construct_data(data, Api_msg, quote)
-        const res = await this.SendMsg(data, SendMsg)
+        const msg = await this.Construct_data(Api_msg, quote)
+        const res = await this.SendMsg(msg)
 
         /** 处理分片 */
         if (images.length > 0) {
@@ -112,15 +123,15 @@ export default new class SendMsg {
                 /** 延迟下... */
                 await common.sleep(200)
                 /** 构建请求参数、打印日志 */
-                const SendMsg = await this.Construct_data(data, i, false)
-                await this.SendMsg(data, SendMsg)
+                const msg = await this.Construct_data(i, false)
+                await this.SendMsg(msg)
             }
         }
         return res
     }
 
-    /** 对url进行特殊处理，防止发送失败 */
-    async urlHandler(data, msg) {
+    /** 处理URL */
+    async HandleURL(msg) {
         if (typeof msg !== 'string') return msg
         const urls = Bot.qg.cfg.whitelist_Url
         const whiteRegex = new RegExp(`\\b(${urls.map(url => url.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})`, 'g')
@@ -149,13 +160,13 @@ export default new class SendMsg {
                     }, async (err, buffer) => {
                         if (err) throw err
                         const base64 = "base64://" + buffer.toString("base64")
-                        const Uint8Array = await this.picture_reply(base64, url)
+                        const Uint8Array = await this.rendering(base64, url)
                         const Api_msg = { content: "", type: "file_image", image: Uint8Array, log: "{image：base64://...}" }
                         /** 转换的二维码连接是否撤回 */
                         const qr = Number(Bot.qg.cfg.recallQR) || 0
                         /** 构建请求参数、打印日志 */
-                        const SendMsg = await this.Construct_data(data, Api_msg, false)
-                        await this.SendMsg(data, SendMsg, qr)
+                        const SendMsg = await this.Construct_data(Api_msg, false)
+                        await this.SendMsg(SendMsg, qr)
                     })
 
                     return "{请扫码查看链接}"
@@ -186,7 +197,6 @@ export default new class SendMsg {
                 return { type, image: base64, log }
             }
         }
-
 
         /** 套娃的二进制base64 */
         if (msg.file.type === "Buffer") {
@@ -224,25 +234,21 @@ export default new class SendMsg {
             }
         }
         /** 字符串格式的base64 */
-        else if (typeof file === "string") {
-            base64 = Buffer.from(file.replace(/^base64:\/\//, ""), "base64")
-        } else {
-            logger.error("未适配字段，请反馈:", msg)
-        }
+        else if (typeof file === "string") base64 = Buffer.from(file.replace(/^base64:\/\//, ""), "base64")
+        else logger.error("未适配字段，请反馈:", msg)
         return { type, image: base64, log }
     }
 
     /** 构建请求参数并打印日志 */
-    async Construct_data(data, Api_msg, quote) {
+    async Construct_data(Api_msg, quote) {
         let logs = ""
         let SendMsg = {}
-        const { msg } = data
         let { content, type, image, log } = Api_msg
         switch (type) {
             case "file_image":
                 logs += log
                 SendMsg = new FormData()
-                if (msg?.id) SendMsg.set("msg_id", msg.id)
+                if (this.msg_id) SendMsg.set("msg_id", this.msg_id)
                 try {
                     /** 检测大小 */
                     let sizeInMB = image?.byteLength / (1024 * 1024)
@@ -259,7 +265,7 @@ export default new class SendMsg {
                                 SendMsg.set("file_image", new Blob([data]))
                             })
                     } else {
-                        if (!sharp) logger.error("[QQ频道]缺少 sharp 依赖，请运行 pnpm install -P 或 pnpm i 进行安装依赖~")
+                        if (!sharp) logger.error("[QQ频道]缺少 sharp 依赖，无法进行图片压缩，请运行 pnpm install -P 或 pnpm i 进行安装依赖~")
                         /** 如果图片大小不超过2.5MB，那么直接存入SendMsg */
                         SendMsg.set("file_image", new Blob([image]))
                     }
@@ -273,95 +279,64 @@ export default new class SendMsg {
                 /** 引用消息 */
                 if (quote) {
                     SendMsg.message_quote = {
-                        message_id: msg?.id,
+                        message_id: this.msg_id,
                         ignore_get_message_error: true
                     }
                 }
                 SendMsg.image = image
-                if (msg?.id) SendMsg.msg_id = msg.id
+                if (this.msg_id) SendMsg.msg_id = this.msg_id
                 break
             default:
                 /** 引用消息 */
                 if (quote) {
                     SendMsg.message_quote = {
-                        message_id: msg?.id,
+                        message_id: this.msg_id,
                         ignore_get_message_error: true
                     }
                 }
-                if (msg?.id) SendMsg.msg_id = msg.id
+                if (this.msg_id) SendMsg.msg_id = this.msg_id
                 break
         }
         /** 文本 */
         if (content) {
-            if (SendMsg instanceof FormData) {
-                SendMsg.set("content", content)
-            } else {
-                SendMsg.content = content
-            }
+            if (SendMsg instanceof FormData) SendMsg.set("content", content)
+            else SendMsg.content = content
             logs += content
-
-            /** 存一份原始消息，用于后续发送失败渲染图片 */
-            data.content = content
         }
-        this.log(data, logs)
+        logger.info(`${chalk.hex("#868ECC")(`[${Bot[this.id].nickname}(${this.id})]`) + "发送消息："}[Test]}] ${logs}`)
         return SendMsg
     }
 
-    /** 打印日志 */
-    log(data, logs) {
-        const { id, group_name } = data
-        const bot = chalk.hex("#868ECC")(`[${Bot[id].name}]`) + "发送消息："
-        switch (data.eventType) {
-            /** 私信 */
-            case "DIRECT_MESSAGE_CREATE":
-                logger.info(`${bot}[${group_name}] ${logs}`)
-                break
-            case "MESSAGE_CREATE":
-                logger.info(`${bot}[${group_name}] ${logs}`)
-                break
-            case "AT_MESSAGE_CREATE":
-                logger.info(`${bot}[${group_name}] ${logs}`)
-                break
-            default:
-                logger.error("未知场景：", data)
-        }
-    }
-
     /** 向API发送消息 */
-    async SendMsg(data, SendMsg, qr = 0) {
+    async SendMsg(msg, qr = 0) {
 
         /** 随机延迟 */
         await common.sleep(lodash.random(100, 300))
-
-        const { id, msg } = data
-        const msg_id = msg.id
-        const { guild_id, channel_id } = msg
 
         /** 发送消息并储存res */
         let res
         try {
             /** 判断频道还是私聊 */
-            data.eventType === "DIRECT_MESSAGE_CREATE"
-                ? res = await Api.postDirectMessage(id, guild_id, SendMsg)
-                : res = await Api.postMessage(id, channel_id, SendMsg)
+            this.eventType !== "DIRECT_MESSAGE_CREATE"
+                ? res = await Bot[this.id].client.messageApi.postMessage(receiveID, msg)
+                : res = await Bot[this.id].client.directMessageApi.postDirectMessage(receiveID, msg)
         } catch (error) {
-            logger.error(`${Bot[id].name} 发送消息错误，正在转成图片重新发送...\n错误信息：`, error)
+            logger.error(`${Bot[this.id].name} 发送消息错误，正在转成图片重新发送...\n错误信息：`, error)
             /** 转换为图片发送 */
             let image = new FormData()
-            if (msg_id) image.set("msg_id", msg_id)
+            if (this.msg_id) image.set("msg_id", this.msg_id)
 
-            let content = null
-            if (data?.content) content = data?.content?.replace(/\n/g, "\\n")
-            image.set("file_image", new Blob([await this.picture_reply(content || "啊咧，图片发不出来", error)]))
+            const content = typeof msg === "string" ? msg : "啊咧，图片发不出来"
+            image.set("file_image", new Blob([await this.rendering(content, error)]))
 
             /** 判断频道还是私聊 */
-            data.eventType === "DIRECT_MESSAGE_CREATE"
-                ? res = await Api.postDirectMessage(id, guild_id, image)
-                : res = await Api.postMessage(id, channel_id, image)
+            this.eventType !== "DIRECT_MESSAGE_CREATE"
+                ? res = await Bot[this.id].client.messageApi.postMessage(receiveID, msg)
+                : res = await Bot[this.id].client.directMessageApi.postDirectMessage(receiveID, msg)
         }
 
         /** 连接转二维码撤回 */
-        if (res.id && qr && qr > 0) this.recallQR(id, res, qr)
+        if (res.id && qr && qr > 0) this.recallQR(this.id, res, qr)
 
         /** 返回消息id给撤回用？ */
         return {
@@ -375,12 +350,12 @@ export default new class SendMsg {
     /** 撤回消息 */
     async recallQR(id, res, qr) {
         setTimeout(async function () {
-            await Api.deleteMessage(id, res.channel_id, res.id, false)
+            await Bot[this.id].client.messageApi.deleteMessage(res.channel_id, res.id, false)
         }, qr * 1000)
     }
 
     /** 渲染图片 */
-    async picture_reply(content, error) {
+    async rendering(content, error) {
         const data = {
             Yz: Bot.qg.YZ,
             error: error,
