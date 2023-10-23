@@ -1,4 +1,5 @@
 /** 
+ * 2023年10月23日：可自行调用
  * 除了比较冷门的 基本都在这了
  * https://bot.q.qq.com/wiki/develop/nodesdk
  */

@@ -1,17 +1,16 @@
 import fs from "fs"
 import Yaml from "yaml"
 import chalk from "chalk"
-import guild from "./guild.js"
+import guild from "../adapter/QQGuild/guild.js"
 import chokidar from "chokidar"
 import common from "../../../lib/common/common.js"
 
-const _path = process.cwd() + "/plugins/QQGuild-plugin/config"
-
+const _path = process.cwd() + "/plugins/Lain-plugin/config"
 
 /** 兼容旧配置 */
-if (fs.existsSync("./plugins/QQGuild-plugin/config.yaml")) {
+if (fs.existsSync("./plugins/Lain-plugin/config.yaml")) {
     if (!fs.existsSync(_path + "/bot.yaml")) {
-        const old = Yaml.parse(fs.readFileSync("./plugins/QQGuild-plugin/config.yaml", "utf8"))
+        const old = Yaml.parse(fs.readFileSync("./plugins/Lain-plugin/config.yaml", "utf8"))
         fs.writeFileSync(_path + "/bot.yaml", Yaml.stringify(old.bot), "utf8")
     }
 }
@@ -50,7 +49,7 @@ if (!fs.existsSync(_path + "/bot.yaml")) {
 
 const cfg = Yaml.parse(fs.readFileSync(_path + "/config.yaml", "utf8"))
 const YZ = JSON.parse(fs.readFileSync("./package.json", "utf-8"))
-const guilds = JSON.parse(fs.readFileSync("./plugins/QQGuild-plugin/package.json", "utf-8"))
+const guilds = JSON.parse(fs.readFileSync("./plugins/Lain-plugin/package.json", "utf-8"))
 
 Bot.qg = {
     /** 云崽信息 */
@@ -75,7 +74,15 @@ Bot.qg = {
 /** 检查配置文件是否存在 */
 if (fs.existsSync(_path + "/bot.yaml")) {
     const bot = Yaml.parse(fs.readFileSync(_path + "/bot.yaml", "utf8"))
-    await (new guild).monitor(bot)
+    for (const i in bot) {
+        if (i === "default") break
+        try {
+            const qg = new guild(bot[i])
+            await qg.monitor()
+        } catch (err) {
+            logger.error(err)
+        }
+    }
 }
 
 /** 热重载~ */
@@ -87,19 +94,19 @@ try {
         watcher.on("change", async () => {
             await common.sleep(1500)
             Bot.qg.cfg = Yaml.parse(fs.readFileSync(filePath, "utf8"))
-            logger.mark("[QQGuild-plugin][配置文件修改] 成功重载")
+            logger.mark("[Lain-plugin][配置文件修改] 成功重载")
         })
 
         watcher.on("error", (error) => {
-            logger.error(`[QQGuild-plugin]发生错误: ${error}`)
+            logger.error(`[Lain-plugin]发生错误: ${error}`)
             watcher.close()
         })
     } else {
-        logger.error(`[QQGuild-plugin]文件 ${filePath} 不存在`)
+        logger.error(`[Lain-plugin]文件 ${filePath} 不存在`)
     }
 } catch (err) {
     logger.error(err)
 }
 
-logger.info(chalk.hex("#868ECC")(`[QQ频道]QQ频道插件${Bot.qg.guild.ver}初始化...`))
-logger.info("https://gitee.com/Zyy955/QQGuild-plugin")
+logger.info(chalk.hex("#868ECC")(`Lain-plugin插件${Bot.qg.guild.ver}全部初始化完成~`))
+logger.info(chalk.hex("#868ECC")("https://gitee.com/Zyy955/Lain-plugin"))

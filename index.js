@@ -1,7 +1,6 @@
 import fs from "fs"
 import "./model/config.js"
-import "./plugins/icqq.js"
-import guild from "./model/guild.js"
+import guild from "./adapter/QQGuild/guild.js"
 import crypto from "crypto"
 import { execSync } from "child_process"
 import { createInterface } from "readline"
@@ -10,13 +9,13 @@ import _Yaml from "./model/yaml.js"
 
 /** 设置主人 */
 let sign = {}
-const _path = "./plugins/QQGuild-plugin/config"
+const _path = "./plugins/Lain-plugin/config"
 
 export class QQGuildBot extends plugin {
     constructor() {
         super({
-            name: "QQ频道插件",
-            priority: 1,
+            name: "Lain-plugin",
+            priority: -50,
             rule: [
                 {
                     reg: /^#QQ频道设置.+$/gi,
@@ -44,7 +43,7 @@ export class QQGuildBot extends plugin {
                 },
                 {
                     reg: /^#(我的|当前)?(id|信息)$/gi,
-                    fnc: 'qg_id'
+                    fnc: 'user_id'
                 }
             ]
         })
@@ -85,7 +84,7 @@ export class QQGuildBot extends plugin {
         let new_update = new update()
         new_update.e = e
         new_update.reply = this.reply
-        const name = "QQGuild-plugin"
+        const name = "Lain-plugin"
         if (e.msg.includes("更新日志")) {
             if (new_update.getPlugin(name)) {
                 this.e.reply(await new_update.getLog(name))
@@ -148,13 +147,13 @@ export class QQGuildBot extends plugin {
     }
 
 
-    async qg_id(e) {
+    async user_id(e) {
         const msg = []
         msg.push(`您的个人ID：${e.user_id}`)
         e.guild_id ? msg.push(`当前频道ID：${e.guild_id}`) : ""
         e.channel_id ? msg.push(`当前子频道ID：${e.channel_id}`) : ""
         e.group_id ? msg.push(`当前群聊ID：${e.group_id}`) : ""
-        if (e.isMaster) msg.push("\n温馨提示：\n使用本体黑白名单请使用「群聊ID」\n使用插件黑白名单请按照配置文件说明进行添加~")
+        if (e.isMaster && e?.adapter === "QQGuild") msg.push("\n温馨提示：\n使用本体黑白名单请使用「群聊ID」\n使用插件黑白名单请按照配置文件说明进行添加~")
         return e.reply(`\n${msg.join('\n')}`, true, { at: true })
     }
 
@@ -206,7 +205,8 @@ let apps = {
         /** 保存新配置 */
         cfg.addIn(cmd[2], bot)
         try {
-            await (new guild).monitor([bot])
+            const qg = new guild(bot)
+            await qg.monitor()
             return `Bot：${Bot[cmd[2]].name}(${cmd[2]}) 已连接...`
         } catch (err) {
             return err

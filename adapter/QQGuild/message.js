@@ -1,12 +1,13 @@
-import chalk from "chalk"
-import Api from "./api.js"
-import { makeForwardMsg } from "../plugins/loader.js"
+import SendMsg from "./sendMsg.js"
+import common from "../../model/common.js"
 
 export default class message {
     /** 传入基本配置 */
     constructor(id, data) {
         /** 开发者id */
         this.id = id
+        /** bot名称 */
+        this.name = Bot[id].name
         /** 接收到的消息 */
         this.data = data
     }
@@ -18,6 +19,8 @@ export default class message {
         /** 获取消息体、appID */
         const { msg } = this.data
 
+        /** 保存消息id */
+        this.msg_id = msg.id
         /** 获取时间戳 */
         const time = parseInt(Date.parse(msg.timestamp) / 1000)
         /** 获取用户的身份组信息 */
@@ -33,9 +36,9 @@ export default class message {
         /** 从gl中取出当前频道信息 */
         const gl = Bot[this.id].gl.get(group_id)
         /** 频道名称 */
-        const guild_name = gl ? gl.guild_name : (Bot.qg.guilds?.[msg?.src_guild_id || msg.guild_id]?.name || "未知")
+        const guild_name = gl ? gl.guild_name : (Bot.qg.guilds?.[msg?.src_guild_id || msg.guild_id]?.name || msg.guild_id)
         /** 子频道名称 */
-        const channel_name = type === "私信" ? "私信" : (gl ? gl.channel_name : "未知")
+        const channel_name = type === "私信" ? "私信" : (gl ? gl.channel_name : msg.channel_id)
         /**  群聊名称 */
         const group_name = guild_name + "-" + channel_name
         /** 用户id */
@@ -114,21 +117,17 @@ export default class message {
         /** 赋值 */
         e.member = member
 
-        /** 动态导入 防止一些未知错误 */
-        const guild = (await import("./guild.js")).default
-
         /** 构建场景对应的方法 */
         if (type === "私信") {
             e.friend = {
-                sendMsg: async (reply, quote) => {
-                    return await (new guild).reply(this.data, reply, quote)
+                sendMsg: async (msg, quote) => {
+                    return await this.reply(msg, quote, group_name)
                 },
                 recallMsg: async (msg_id) => {
-                    logger.info(`${Bot[this.id].name} 撤回消息：${msg_id}`)
-                    return await Bot[id].client.messageApi.deleteMessage(msg.channel_id, msg_id, false)
+                    return await recallMsg(msg.channel_id, msg_id)
                 },
                 makeForwardMsg: async (forwardMsg) => {
-                    return await makeForwardMsg(forwardMsg, this.data)
+                    return await common.makeForwardMsg(forwardMsg, this.data)
                 },
                 getChatHistory: async (msg_id, num) => {
                     const source = await this.getChatHistory(msg.channel_id, msg_id)
@@ -152,26 +151,24 @@ export default class message {
                     return [source]
                 },
                 recallMsg: async (msg_id) => {
-                    logger.info(`${Bot[this.id].name} 撤回消息：${msg_id}`)
-                    return await Bot[id].client.messageApi.deleteMessage(msg.channel_id, msg_id, false)
+                    return await recallMsg(msg.channel_id, msg_id)
                 },
-                sendMsg: async (reply, quote) => {
-                    return await (new guild).reply(this.data, reply, quote)
+                sendMsg: async (msg, quote) => {
+                    return await this.reply(msg, quote, group_name)
                 },
                 makeForwardMsg: async (forwardMsg) => {
-                    return await makeForwardMsg(forwardMsg, this.data)
+                    return await common.makeForwardMsg(forwardMsg, this.data)
                 }
             }
         }
 
         /** 快速撤回 */
         e.recall = async () => {
-            logger.info(`${this.name} 撤回消息：${msg.id}`)
-            return await Bot[id].client.messageApi.deleteMessage(msg.channel_id, msg.id, false)
+            return await recallMsg(msg.channel_id, msg.id)
         }
         /** 快速回复 */
-        e.reply = async (reply, quote) => {
-            return await (new guild).reply(this.data, reply, quote)
+        e.reply = async (msg, quote) => {
+            return await this.reply(msg, quote, group_name)
         }
         /** 将收到的消息转为字符串 */
         e.toString = () => {
@@ -180,7 +177,7 @@ export default class message {
 
         /** 引用消息 */
         if (msg?.message_reference?.message_id) {
-            const reply = (await Api.message(this.id, msg.channel_id, msg.message_reference.message_id)).message
+            const reply = (await Bot[this.id].client.messageApi.message(msg.channel_id, msg.message_reference.message_id)).message
             let message = []
             if (reply.attachments) {
                 for (let i of reply.attachments) {
@@ -211,10 +208,23 @@ export default class message {
     }
 
     /** 撤回消息 */
-    async recallMsg(channel_id, msg_id) {
-        `[QQ频道]撤回消息:\n`
-        logger.info(`${this.name} 撤回消息：${msg_id}`)
-        return await Bot[this.id].client.messageApi.deleteMessage(channel_id, msg_id, false)
+    async recallMsg(channel_ID, msg_id) {
+        /** 先打印日志 */
+        const { data } = await Bot[this.id].client.messageApi.message(channel_ID, msg_id)
+        const { guild_id, channel_id, timestamp, author, content } = data.message
+        const msg = ""
+        msg += `撤回消息:\n频道ID：${guild_id}`
+        msg += `\n子频道ID：${channel_id}`
+        msg += `\n详细消息：`
+        msg += `\n  时间：${timestamp}`
+        msg += `\n  用户ID：${author.id}`
+        msg += `\n  用户昵称：${author.username}`
+        msg += `\n  用户是否为机器人：${author.bot}`
+        msg += `\n  消息内容：${content || "未知内容"}`
+        /** 打印日志 */
+        await common.logModule(this.id, msg)
+        /** 撤回消息 */
+        return (await Bot[this.id].client.messageApi.deleteMessage(channel_ID, msg_id, false)).data
     }
 
     /** 构建message */
@@ -335,14 +345,47 @@ export default class message {
     }
 
     /** 处理日志 */
-    log(e) {
-        const name = Bot[e.uin].name
-        let group_name
-        if (e.message_type === "group") {
-            group_name = e.group_name
-        } else {
-            group_name = e.guild_name + "私信"
-        }
-        return `${chalk.hex("#868ECC")(`[${name}]`)}频道消息：[${group_name}，${e.sender?.card || e.sender?.nickname}] ${e.raw_message}`
+    async log(e) {
+        let group_name = e.guild_name + "-私信"
+        e.message_type === "group" ? group_name = e.group_name : ""
+        return await common.logModule(this.id, `频道消息：[${group_name}，${e.sender?.card || e.sender?.nickname}] ${e.raw_message}`)
     }
+
+    /** 处理消息、转换格式 */
+    async reply(msg, quote, group_name) {
+        if (msg === "开始执行重启，请稍等...") await this.restart()
+        const { guild_id, channel_id } = this.data.msg
+        /** 处理云崽过来的消息 */
+        return await (new SendMsg(this.id, { guild_id, channel_id }, this.data.eventType, this.msg_id, group_name)).message(msg, quote)
+    }
+
+    /** 保存重启到redis中 */
+    async restart() {
+        const type = this.data.eventType === "DIRECT_MESSAGE_CREATE" ? "私信" : "群聊"
+        const { id, guild_id, channel_id } = this.data.msg
+        const cfg = JSON.stringify({
+            type: type,
+            time: new Date().getTime(),
+            appID: this.id,
+            id: id,
+            guild_id: guild_id,
+            channel_id: channel_id,
+        })
+        await redis.set("qg:restart", cfg, { EX: 120 })
+    }
+
+    /** 重启后发送主动消息 */
+    async init(restart) {
+        const cfg = JSON.parse(restart)
+        const { type, appID, id, guild_id, channel_id } = cfg
+        const time = (new Date().getTime() - cfg.time || new Date().getTime()) / 1000
+        const msg = `重启成功：耗时${time.toFixed(2)}秒`
+        if (type === "私信") {
+            await Bot[this.id].client.directMessageApi.postDirectMessage(guild_id, { content: msg, msg_id: id })
+        } else {
+            await Bot[this.id].client.messageApi.postMessage(channel_id, { content: msg, msg_id: id })
+        }
+        redis.del("qg:restart")
+    }
+
 }

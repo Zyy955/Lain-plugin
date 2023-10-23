@@ -5,20 +5,24 @@ import lodash from "lodash"
 import qrcode from "qrcode"
 import fetch from "node-fetch"
 import { FormData, Blob } from "node-fetch"
-import common from "../../../../lib/common/common.js"
+import common from "../../model/common.js"
 import puppeteer from "../../../../lib/puppeteer/puppeteer.js"
 
 export default class SendMsg {
     /** 传入基本配置 */
-    constructor(id, receiveID, eventType, msg_id = false) {
+    constructor(id, group_id, eventType, msg_id = false, group_name) {
         /** 开发者id */
         this.id = id
-        /** 接收id(私信消息、子频道消息) */
-        this.receiveID = receiveID
+        /** 频道id */
+        this.guild_id = group_id.guild_id
+        /** 子频道id */
+        this.channel_id = group_id.channel_id
         /** 消息类型 */
         this.eventType = eventType
         /** 触发消息id */
         this.msg_id = msg_id
+        /** 群名称 */
+        this.group_name = group_name
     }
 
     /** 处理消息 */
@@ -114,8 +118,7 @@ export default class SendMsg {
         content = content.join("").replace(/\n{1,2}$/g, '').replace(/\n{3,4}/g, '\n')
         const Api_msg = { content: content, ...image }
         if (!content && content === "" && Object.keys(image).length === 0) return
-        const msg = await this.Construct_data(Api_msg, quote)
-        const res = await this.SendMsg(msg)
+        const res = await this.SendMsg(await this.Construct_data(Api_msg, quote))
 
         /** 处理分片 */
         if (images.length > 0) {
@@ -123,8 +126,7 @@ export default class SendMsg {
                 /** 延迟下... */
                 await common.sleep(200)
                 /** 构建请求参数、打印日志 */
-                const msg = await this.Construct_data(i, false)
-                await this.SendMsg(msg)
+                await this.SendMsg(await this.Construct_data(i, false))
             }
         }
         return res
@@ -303,7 +305,7 @@ export default class SendMsg {
             else msg.content = content
             logs += content
         }
-        logger.info(`${chalk.hex("#868ECC")(`[${Bot[this.id].nickname}(${this.id})]`) + "发送消息："}[Test]}] ${logs}`)
+        await common.logModule(this.id, `发送消息：[${this.group_name}] ${logs}`)
         return msg
     }
 
@@ -317,8 +319,8 @@ export default class SendMsg {
         try {
             /** 判断频道还是私聊 */
             this.eventType !== "DIRECT_MESSAGE_CREATE"
-                ? res = await Bot[this.id].client.messageApi.postMessage(receiveID, msg)
-                : res = await Bot[this.id].client.directMessageApi.postDirectMessage(receiveID, msg)
+                ? res = await Bot[this.id].client.messageApi.postMessage(this.channel_id, msg)
+                : res = await Bot[this.id].client.directMessageApi.postDirectMessage(this.guild_id, msg)
         } catch (error) {
             logger.error(`${Bot[this.id].name} 发送消息错误，正在转成图片重新发送...\n错误信息：`, error)
             /** 转换为图片发送 */
@@ -330,19 +332,19 @@ export default class SendMsg {
 
             /** 判断频道还是私聊 */
             this.eventType !== "DIRECT_MESSAGE_CREATE"
-                ? res = await Bot[this.id].client.messageApi.postMessage(receiveID, msg)
-                : res = await Bot[this.id].client.directMessageApi.postDirectMessage(receiveID, msg)
+                ? res = await Bot[this.id].client.messageApi.postMessage(this.channel_id, msg)
+                : res = await Bot[this.id].client.directMessageApi.postDirectMessage(this.guild_id, msg)
         }
 
         /** 连接转二维码撤回 */
-        if (res.id && qr && qr > 0) this.recallQR(this.id, res, qr)
+        if (res.data.id && qr && qr > 0) this.recallQR(this.id, res, qr)
 
         /** 返回消息id给撤回用？ */
         return {
-            seq: res.seq_in_channel,
+            seq: res.data.seq_in_channel,
             rand: 1,
-            time: parseInt(Date.parse(res.timestamp) / 1000),
-            message_id: res.id
+            time: parseInt(Date.parse(res.data.timestamp) / 1000),
+            message_id: res.data.id
         }
     }
 
@@ -360,11 +362,11 @@ export default class SendMsg {
             error: error,
             guild: Bot.qg.guild.ver,
             msg: content,
-            saveId: 'QQGuild-plugin',
-            _plugin: 'QQGuild-plugin',
-            tplFile: './plugins/QQGuild-plugin/resources/index.html',
+            saveId: 'Lain-plugin',
+            _plugin: 'Lain-plugin',
+            tplFile: './plugins/Lain-plugin/resources/index.html',
         }
-        const msg = await puppeteer.screenshot(`QQGuild-plugin/QQGuild-plugin`, data)
+        const msg = await puppeteer.screenshot(`Lain-plugin/Lain-plugin`, data)
         return msg.file
     }
 
