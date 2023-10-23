@@ -198,11 +198,7 @@ export default class message {
             }
         }
         /** 打印日志 */
-        if (this.data.checkBlack) {
-            logger.mark(this.log(e))
-        } else {
-            Bot.qg.cfg.isLog ? logger.info(this.log(e)) : logger.debug(this.log(e))
-        }
+        await this.log(e)
 
         /** 缓存一下初始消息，可通过msg_id查询 */
         await redis.set(msg.id, JSON.stringify(message), { EX: 120 })
@@ -350,7 +346,7 @@ export default class message {
     async log(e) {
         let group_name = e.guild_name + "-私信"
         e.message_type === "group" ? group_name = e.group_name : ""
-        return await common.logModule(this.id, `频道消息：[${group_name}，${e.sender?.card || e.sender?.nickname}] ${e.raw_message}`)
+        return await common.logModule(this.id, `频道消息：[${group_name}，${e.sender?.card || e.sender?.nickname}] ${e.raw_message}`, Bot.qg.cfg.isLog ? "info" : "debug")
     }
 
     /** 处理消息、转换格式 */

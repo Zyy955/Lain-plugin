@@ -1,10 +1,13 @@
 {
   "name": "qqguild-plugin",
-  "version": "0.5.1",
-  "author": "Zyy955",
-  "github": "https://github.com/Zyy955/QQGuild-plugin",
-  "gitee": "https://gitee.com/Zyy955/QQGuild-plugin",
+  "version": "1.0.0",
+  "author": "Lain.",
+  "github": "https://github.com/Zyy955/Lain-plugin",
+  "gitee": "https://gitee.com/Zyy955/Lain-plugin",
   "type": "module",
+  "adapter": {
+    "qg": "0.5.1"
+  },
   "dependencies": {
     "qq-guild-bot": "^2.9.5",
     "qrcode": "^1.5.3",

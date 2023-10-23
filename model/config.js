@@ -18,33 +18,11 @@ if (fs.existsSync("./plugins/Lain-plugin/config.yaml")) {
 /** 检查配置文件是否存在 */
 if (!fs.existsSync(_path + "/config.yaml")) {
     fs.copyFileSync(_path + "/defSet/config.yaml", _path + "/config.yaml")
-} else {
-    /** 兼容旧配置文件 */
-    let cfg = fs.readFileSync(_path + "/config.yaml", "utf8")
-    if (!cfg.match(RegExp("width:"))) {
-        cfg = cfg + `\n# 压缩后图片宽度像素大小\nwidth: 1000`
-    }
-    if (!cfg.match(RegExp("quality:"))) {
-        cfg = cfg + `\n# 压缩后的图片质量\nquality: 100`
-    }
-    if (!cfg.match(RegExp("recallQR:"))) {
-        cfg = cfg + `\n# 撤回url转换成二维码的时间(秒) 0表示不撤回\nrecallQR: 20`
-    }
-    if (!cfg.match(RegExp("isLog:"))) {
-        cfg = cfg + `\n# 非白名单或黑名单是否显示日志(关闭后会转为debug日志)\nisLog: true`
-    }
-    if (!cfg.match(RegExp("ImageSize:"))) {
-        cfg = cfg + `\n# 图片压缩阈值\nImageSize: 2.5`
-    }
-    if (!cfg.match(RegExp("prefixBlack:"))) {
-        cfg = cfg + `\n# 前缀转换黑名单 在这里添加机器人的开发者id(appID)则不会转换该机器人的前缀\nprefixBlack:\n  - 123456`
-    }
-    fs.writeFileSync(_path + "/config.yaml", cfg, "utf8")
 }
 
 /** 生成默认配置文件 */
 if (!fs.existsSync(_path + "/bot.yaml")) {
-    fs.writeFileSync(_path + "/bot.yaml", `# 机器人配置 请不要删除default！这是兼容旧配置的！\ndefault: {}`, 'utf8')
+    fs.writeFileSync(_path + "/bot.yaml", `# 机器人配置 请不要删除default！这是兼容旧配置的！\ndefault: {}`, "utf8")
 }
 
 const cfg = Yaml.parse(fs.readFileSync(_path + "/config.yaml", "utf8"))
@@ -60,7 +38,7 @@ Bot.qg = {
     /** 插件信息 */
     guild: {
         name: guilds.name,
-        ver: guilds.version,
+        ver: guilds.adapter.qg,
         guild_ver: guilds.dependencies["qq-guild-bot"].replace("^", "")
     },
     /** 基本配置 */

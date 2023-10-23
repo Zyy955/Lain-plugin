@@ -13,9 +13,15 @@ function sleep(ms) {
  * @param log 日志内容
  * @param err 可选参数，日志转为错误日志
  */
-export function logModule(id, log, err = false) {
-    if (err) return logger.error(`${chalk.hex("#868ECC")(`[${Bot[id].nickname}]`) }${log}`)
-    return logger.info(`${chalk.hex("#868ECC")(`[${Bot[id].nickname}(${id})]`)} ${log}`)
+export function logModule(id, log, type = "info") {
+    const list = {
+        info: function () { logger.info(`${chalk.hex("#868ECC")(`[${Bot[id].nickname}]`)} ${log}`) },
+        error: function () { logger.error(`${chalk.hex("#868ECC")(`[${Bot[id].nickname}]`)} ${log}`) },
+        mark: function () { logger.mark(`${chalk.hex("#868ECC")(`[${Bot[id].nickname}]`)} ${log}`) },
+        debug: function () { logger.debug(`${chalk.hex("#868ECC")(`[${Bot[id].nickname}]`)} ${log}`) },
+        warn: function () { logger.warn(`${chalk.hex("#868ECC")(`[${Bot[id].nickname}]`)} ${log}`) },
+    }
+    return list[type]()
 }
 
 /**

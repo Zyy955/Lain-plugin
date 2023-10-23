@@ -82,9 +82,9 @@ export default class guild {
             tiny_id: bot.id,
             nickname: bot.username,
             avatar: bot.avatar,
-            stat: { start_time: Date.now() / 1000 },
+            stat: { start_time: Date.now() / 1000, recv_msg_cnt: 0 },
             apk: { display: Bot.qg.guild.name, version: Bot.qg.guild.ver },
-            version: { id: "qg", name: "QQ频道Bot", version: Bot.qg.guild.guild_ver },
+            version: { id: Bot[this.id].allMsg ? "私域" : "公域", name: "QQ频道Bot", version: Bot.qg.guild.guild_ver },
             /** 转发 */
             makeForwardMsg: async (forwardMsg) => {
                 return await common.makeForwardMsg(forwardMsg)
@@ -148,7 +148,7 @@ export default class guild {
                 const Member = (await this.client.guildApi.guildMember(qg.id, this.tiny_id)).data
                 admin = Member.roles.includes("2") ? true : false
             } catch (err) {
-                await common.logModule(this.id, `Bot无法在频道 ${qg.id} 中读取基础信息，请给予权限...错误信息：${err.message}`, true)
+                await common.logModule(this.id, `Bot无法在频道 ${qg.id} 中读取基础信息，请给予权限...错误信息：${err.message}`, "error")
             }
 
             /** 保存所有bot的频道列表 */
@@ -190,7 +190,7 @@ export default class guild {
                     Bot.qg.guilds[i.guild_id].channels[i.id] = i.name || i.id
                 }
             } catch (err) {
-                await common.logModule(this.id, `Bot无法在频道 ${qg.id} 中读取子频道列表，请给予权限...错误信息：${err.message}`, true)
+                await common.logModule(this.id, `Bot无法在频道 ${qg.id} 中读取子频道列表，请给予权限...错误信息：${err.message}`, "error")
             }
         }
 
@@ -199,7 +199,7 @@ export default class guild {
             const restart = await redis.get("qg:restart")
             if (restart && JSON.parse(restart).appID === id) await this.init(restart)
         } catch (error) {
-            await common.logModule(this.id, `重启错误：${error}`, true)
+            await common.logModule(this.id, `重启错误：${error}`, "error")
         }
     }
 

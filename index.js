@@ -232,9 +232,31 @@ if (!fs.existsSync(process.cwd() + "/plugins/ws-plugin") && Bot?.uin !== "88888"
     getInput()
 }
 
-
-
-/** 加载一下插件到主体... */
-// let ret = await Promise.allSettled([import('./model/Yunzai.js')])
-// let apps = { Yunzai: ret[0].value[Object.keys(ret[0].value)[0]] }
-// export { apps }
+/** 还是修改一下，不然cvs这边没法用... */
+const getGroupMemberInfo = Bot.getGroupMemberInfo
+Bot.getGroupMemberInfo = async function (group_id, user_id) {
+    try {
+        return await getGroupMemberInfo.call(this, group_id, user_id)
+    } catch (error) {
+        let nickname
+        error?.stack?.includes("ws-plugin") ? nickname = "chronocat" : nickname = String(group_id).includes("qg_") ? "QQGuild-Bot" : "WeChat-Bot"
+        return {
+            group_id,
+            user_id,
+            nickname,
+            card: nickname,
+            sex: "female",
+            age: 6,
+            join_time: "",
+            last_sent_time: "",
+            level: 1,
+            role: "member",
+            title: "",
+            title_expire_time: "",
+            shutup_time: 0,
+            update_time: "",
+            area: "南极洲",
+            rank: "潜水",
+        }
+    }
+}

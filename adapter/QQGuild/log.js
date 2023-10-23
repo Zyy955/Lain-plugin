@@ -144,14 +144,14 @@ export default class qg_log {
                     const Member = (await Bot[this.id].client.guildApi.guildMember(msg.id, this.tiny_id)).data
                     admin = Member.roles.includes("2") ? true : false
                 } catch (err) {
-                    await common.logModule(this.id, `Bot无法在频道 ${msg.id} 中读取基础信息，请给予权限...错误信息：${err.message}`, true)
+                    await common.logModule(this.id, `Bot无法在频道 ${msg.id} 中读取基础信息，请给予权限...错误信息：${err.message}`, "error")
                 }
 
                 let qg
                 try {
                     qg = (await Bot[this.id].client.guildApi.guild(msg.id)).data
                 } catch (err) {
-                    await common.logModule(this.id, `Bot无法在频道 ${msg.id} 中读取基础信息，请给予权限...错误信息：${err.message}`, true)
+                    await common.logModule(this.id, `Bot无法在频道 ${msg.id} 中读取基础信息，请给予权限...错误信息：${err.message}`, "error")
                 }
 
                 Bot.qg.guilds[qg.id] = {
@@ -190,7 +190,7 @@ export default class qg_log {
                         Bot.qg.guilds[i.guild_id].channels[i.id] = i.name || i.id
                     }
                 } catch (err) {
-                    await common.logModule(this.id, `Bot无法在频道 ${qg.id} 中读取子频道列表，请给予权限...错误信息：${err.message}`, true)
+                    await common.logModule(this.id, `Bot无法在频道 ${qg.id} 中读取子频道列表，请给予权限...错误信息：${err.message}`, "error")
                 }
                 return `[${msg.name}(qg_${msg.id})] 机器人加入频道，操作人：${msg.op_user_id}`
             },

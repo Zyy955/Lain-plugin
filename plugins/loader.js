@@ -4,6 +4,9 @@ import Runtime from '../../../lib/plugins/runtime.js'
 
 export default new class QQGuildLoader {
     async deal(e) {
+        /** 记录消息次数 */
+        await redis.incr(`qg:${e.self_id}:sendMsg:total`)
+        Bot[e.self_id].stat.recv_msg_cnt = await redis.get(`qg:${e.self_id}:sendMsg:total`)
         Object.defineProperty(e, 'bot', {
             value: Bot[e.self_id]
         })
