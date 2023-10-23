@@ -1,0 +1,43 @@
+# /转# 只会转换开头的/
+prefix: false
+
+# 分片转发
+forwar: true
+
+# 非白名单或黑名单是否显示日志(关闭后会转为debug日志)
+isLog: true
+
+# 图片压缩阈值
+ImageSize: 2.5
+
+# 压缩后图片宽度像素大小
+width: 1000
+
+# 压缩后的图片质量
+quality: 100
+
+# 撤回url转换成二维码的时间(秒) 0表示不撤回
+recallQR: 20
+
+# 前缀转换黑名单 在这里添加机器人的开发者id(appID)则不会转换该机器人的前缀
+prefixBlack:
+  - 123456
+
+# url白名单，在白名单中的链接不会转为二维码
+whitelist_Url:
+  - 例子1
+  - https://www.Zyy955.com
+
+# 白名单频道
+whitelist:
+
+# 黑名单频道
+blacklist:
+  - "11111111111111111111"
+
+# 白名单子频道
+channel_whitelist:
+
+# 黑名单子频道
+channel_blacklist:
+  - "111111111"
