@@ -204,6 +204,8 @@ export default class message {
             Bot.qg.cfg.isLog ? logger.info(this.log(e)) : logger.debug(this.log(e))
         }
 
+        /** 缓存一下初始消息，可通过msg_id查询 */
+        await redis.set(msg.id, JSON.stringify(message), { EX: 120 })
         return e
     }
 
@@ -373,19 +375,4 @@ export default class message {
         })
         await redis.set("qg:restart", cfg, { EX: 120 })
     }
-
-    /** 重启后发送主动消息 */
-    async init(restart) {
-        const cfg = JSON.parse(restart)
-        const { type, appID, id, guild_id, channel_id } = cfg
-        const time = (new Date().getTime() - cfg.time || new Date().getTime()) / 1000
-        const msg = `重启成功：耗时${time.toFixed(2)}秒`
-        if (type === "私信") {
-            await Bot[this.id].client.directMessageApi.postDirectMessage(guild_id, { content: msg, msg_id: id })
-        } else {
-            await Bot[this.id].client.messageApi.postMessage(channel_id, { content: msg, msg_id: id })
-        }
-        redis.del("qg:restart")
-    }
-
 }

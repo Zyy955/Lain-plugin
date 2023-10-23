@@ -5,7 +5,7 @@ import crypto from "crypto"
 import { execSync } from "child_process"
 import { createInterface } from "readline"
 import { update } from "../other/update.js"
-import _Yaml from "./model/yaml.js"
+import yaml from "./model/yaml.js"
 
 /** 设置主人 */
 let sign = {}
@@ -50,7 +50,7 @@ export class QQGuildBot extends plugin {
     }
 
     async QQGuildCfg(e) {
-        const cfg = new _Yaml(_path + "/config.yaml")
+        const cfg = new yaml(_path + "/config.yaml")
         if (e.msg.includes("分片转发")) {
             e.msg.includes("开启") ? cfg.set("forwar", true) : cfg.set("forwar", false)
             const msg = `分片转发已${cfg.get("forwar") ? '开启' : '关闭'}`
@@ -62,7 +62,7 @@ export class QQGuildBot extends plugin {
     }
 
     async QQGuildAccount(e) {
-        const cfg = new _Yaml(_path + "/bot.yaml")
+        const cfg = new yaml(_path + "/bot.yaml")
         if (e.sub_type === "friend") {
             const msg = []
             const config = cfg.data()
@@ -104,7 +104,7 @@ export class QQGuildBot extends plugin {
     async master(e) {
         let user_id = e.user_id
         if (e.at) {
-            const cfg = new _Yaml("./config/config/other.yaml")
+            const cfg = new yaml("./config/config/other.yaml")
             /** 存在at检测触发用户是否为主人 */
             if (!e.isMaster) return e.reply(`只有主人才能命令我哦~\n(*/ω＼*)`)
             user_id = e.at
@@ -127,7 +127,7 @@ export class QQGuildBot extends plugin {
     async del_master(e) {
         // const file = _path
         if (!e.at) return e.reply("你都没有告诉我是谁！快@他吧！^_^")
-        const cfg = new _Yaml("./config/config/other.yaml")
+        const cfg = new yaml("./config/config/other.yaml")
         /** trss */
         if (cfg.hasIn("master")) {
             if (!cfg.value("master", e.at)) {
@@ -173,7 +173,7 @@ let apps = {
     /** 设置主人 */
     master(e, user_id = null) {
         user_id = user_id || e.user_id
-        const cfg = new _Yaml("./config/config/other.yaml")
+        const cfg = new yaml("./config/config/other.yaml")
         /** trss */
         if (cfg.hasIn("master")) {
             cfg.addVal("master", user_id)
@@ -193,7 +193,7 @@ let apps = {
         if (!/^[0-9a-zA-Z]{32}$/.test(cmd[3])) return "token 错误！"
 
         let bot
-        const cfg = new _Yaml(_path + "/bot.yaml")
+        const cfg = new yaml(_path + "/bot.yaml")
         /** 重复的appID，删除 */
         if (cfg.hasIn(cmd[2])) {
             cfg.del(cmd[2])

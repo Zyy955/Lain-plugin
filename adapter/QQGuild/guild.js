@@ -148,7 +148,7 @@ export default class guild {
                 const Member = (await this.client.guildApi.guildMember(qg.id, this.tiny_id)).data
                 admin = Member.roles.includes("2") ? true : false
             } catch (err) {
-                await common.logModule(this.id, `Bot无法在频道 ${qg.id} 中读取基础信息，请给予权限...\n错误信息：${err.message}`, true)
+                await common.logModule(this.id, `Bot无法在频道 ${qg.id} 中读取基础信息，请给予权限...错误信息：${err.message}`, true)
             }
 
             /** 保存所有bot的频道列表 */
@@ -190,7 +190,7 @@ export default class guild {
                     Bot.qg.guilds[i.guild_id].channels[i.id] = i.name || i.id
                 }
             } catch (err) {
-                await common.logModule(this.id, `Bot无法在频道 ${qg.id} 中读取子频道列表，请给予权限...\n错误信息：${err.message}`, true)
+                await common.logModule(this.id, `Bot无法在频道 ${qg.id} 中读取子频道列表，请给予权限...错误信息：${err.message}`, true)
             }
         }
 
@@ -285,6 +285,20 @@ export default class guild {
         const hi = "QQGuild-plugin：你好~"
         logger.info(`${this.name} 发送私信消息：${hi}`)
         await Bot[this.id].client.directMessageApi.postDirectMessage(_data.data.guild_id, { content: hi })
+    }
+
+    /** 重启后发送主动消息 */
+    async init(restart) {
+        const cfg = JSON.parse(restart)
+        const { type, appID, id, guild_id, channel_id } = cfg
+        const time = (new Date().getTime() - cfg.time || new Date().getTime()) / 1000
+        const msg = `重启成功：耗时${time.toFixed(2)}秒`
+        if (type === "私信") {
+            await Bot[appID].client.directMessageApi.postDirectMessage(guild_id, { content: msg, msg_id: id })
+        } else {
+            await Bot[appID].client.messageApi.postMessage(channel_id, { content: msg, msg_id: id })
+        }
+        redis.del("qg:restart")
     }
 }
 

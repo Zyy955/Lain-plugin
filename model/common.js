@@ -14,7 +14,7 @@ function sleep(ms) {
  * @param err 可选参数，日志转为错误日志
  */
 export function logModule(id, log, err = false) {
-    if (err) return logger.error(`${chalk.hex("#868ECC")(`[${Bot[id].nickname}]`)}${log}`)
+    if (err) return logger.error(`${chalk.hex("#868ECC")(`[${Bot[id].nickname}]`) }${log}`)
     return logger.info(`${chalk.hex("#868ECC")(`[${Bot[id].nickname}(${id})]`)} ${log}`)
 }
 

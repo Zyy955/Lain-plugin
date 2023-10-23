@@ -1,6 +1,6 @@
 import fs from "fs"
 import Yaml from "yaml"
-import _Yaml from "./model/yaml.js"
+import yaml from "./model/yaml.js"
 import common from "../../lib/common/common.js"
 
 /**
@@ -36,7 +36,7 @@ setTimeout(async () => {
         }
     }
 
-    const cfg = new _Yaml("./plugins/QQGuild-plugin/config/bot.yaml")
+    const cfg = new yaml("./plugins/Lain-plugin/config/bot.yaml")
     const config = cfg.data()
     for (const i in config) {
         prefixBlack.push({ label: Bot?.[i]?.name || "未知", value: config[i].appID })
@@ -58,11 +58,11 @@ export function supportGuoba() {
 
     return {
         pluginInfo: {
-            name: 'QQGuild-plugin',
+            name: 'Lain-plugin',
             title: 'QQ频道插件',
             author: '@Lain.',
             authorLink: 'https://gitee.com/Zyy955',
-            link: 'https://gitee.com/Zyy955/QQGuild-plugin',
+            link: 'https://gitee.com/Zyy955/Lain-plugin',
             isV3: true,
             isV2: false,
             description: '主要为云崽提供QQ频道机器人功能',
@@ -72,7 +72,7 @@ export function supportGuoba() {
             // 图标颜色，例：#FF0000 或 rgb(255, 0, 0)
             iconColor: '#6bb9dd',
             // 如果想要显示成图片，也可以填写图标路径（绝对路径）
-            iconPath: process.cwd() + "/plugins/QQGuild-plugin/resources/icon.png",
+            iconPath: process.cwd() + "/plugins/Lain-plugin/resources/icon.png",
         },
         // 配置项信息
         configInfo: {

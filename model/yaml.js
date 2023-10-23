@@ -3,7 +3,7 @@ import Yaml from "yaml"
 import lodash from "lodash"
 
 /** 捏，可以保留注释哦 */
-export default class Yaml_ {
+export default class yaml {
   /** 传入路径 */
   constructor(_path) {
     this._path = _path
