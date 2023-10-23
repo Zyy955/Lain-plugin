@@ -242,13 +242,13 @@ export default class SendMsg {
     /** 构建请求参数并打印日志 */
     async Construct_data(Api_msg, quote) {
         let logs = ""
-        let SendMsg = {}
+        let msg = {}
         let { content, type, image, log } = Api_msg
         switch (type) {
             case "file_image":
                 logs += log
-                SendMsg = new FormData()
-                if (this.msg_id) SendMsg.set("msg_id", this.msg_id)
+                msg = new FormData()
+                if (this.msg_id) msg.set("msg_id", this.msg_id)
                 try {
                     /** 检测大小 */
                     let sizeInMB = image?.byteLength / (1024 * 1024)
@@ -262,54 +262,53 @@ export default class SendMsg {
                             .jpeg({ quality: Bot.qg.cfg.quality })
                             .toBuffer()
                             .then(data => {
-                                SendMsg.set("file_image", new Blob([data]))
+                                msg.set("file_image", new Blob([data]))
                             })
                     } else {
                         if (!sharp) logger.error("[QQ频道]缺少 sharp 依赖，无法进行图片压缩，请运行 pnpm install -P 或 pnpm i 进行安装依赖~")
                         /** 如果图片大小不超过2.5MB，那么直接存入SendMsg */
-                        SendMsg.set("file_image", new Blob([image]))
+                        msg.set("file_image", new Blob([image]))
                     }
                 } catch (err) {
                     /** 产生错误直接存入即可 */
-                    SendMsg.set("file_image", new Blob([image]))
+                    msg.set("file_image", new Blob([image]))
                 }
                 break
             case "url":
                 logs += Api_msg.log
                 /** 引用消息 */
                 if (quote) {
-                    SendMsg.message_quote = {
+                    msg.message_quote = {
                         message_id: this.msg_id,
                         ignore_get_message_error: true
                     }
                 }
-                SendMsg.image = image
-                if (this.msg_id) SendMsg.msg_id = this.msg_id
+                msg.image = image
+                if (this.msg_id) msg.msg_id = this.msg_id
                 break
             default:
                 /** 引用消息 */
                 if (quote) {
-                    SendMsg.message_quote = {
+                    msg.message_quote = {
                         message_id: this.msg_id,
                         ignore_get_message_error: true
                     }
                 }
-                if (this.msg_id) SendMsg.msg_id = this.msg_id
+                if (this.msg_id) msg.msg_id = this.msg_id
                 break
         }
         /** 文本 */
         if (content) {
-            if (SendMsg instanceof FormData) SendMsg.set("content", content)
-            else SendMsg.content = content
+            if (msg instanceof FormData) msg.set("content", content)
+            else msg.content = content
             logs += content
         }
         logger.info(`${chalk.hex("#868ECC")(`[${Bot[this.id].nickname}(${this.id})]`) + "发送消息："}[Test]}] ${logs}`)
-        return SendMsg
+        return msg
     }
 
     /** 向API发送消息 */
     async SendMsg(msg, qr = 0) {
-
         /** 随机延迟 */
         await common.sleep(lodash.random(100, 300))
 

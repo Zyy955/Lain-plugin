@@ -1,13 +1,22 @@
 import chalk from "chalk"
 import Api from "./api.js"
+import { makeForwardMsg } from "../plugins/loader.js"
 
-export default new class message {
+export default class message {
+    /** 传入基本配置 */
+    constructor(id, data) {
+        /** 开发者id */
+        this.id = id
+        /** 接收到的消息 */
+        this.data = data
+    }
+
     /** 消息转换为Yunzai格式 */
-    async msg(data, type = "") {
+    async msg(type = "") {
         /** 初始化e */
         let e = {}
         /** 获取消息体、appID */
-        const { msg, id } = data
+        const { msg } = this.data
 
         /** 获取时间戳 */
         const time = parseInt(Date.parse(msg.timestamp) / 1000)
@@ -22,7 +31,7 @@ export default new class message {
         /** 群聊id */
         const group_id = `qg_${msg.guild_id}-${msg.channel_id}`
         /** 从gl中取出当前频道信息 */
-        const gl = Bot.gl.get(group_id)
+        const gl = Bot[this.id].gl.get(group_id)
         /** 频道名称 */
         const guild_name = gl ? gl.guild_name : (Bot.qg.guilds?.[msg?.src_guild_id || msg.guild_id]?.name || "未知")
         /** 子频道名称 */
@@ -37,7 +46,7 @@ export default new class message {
         const message_type = type === "私信" ? "private" : "group"
         const sub_type = type === "私信" ? "friend" : "normal"
         /** 存入data中 */
-        data.group_name = group_name
+        this.data.group_name = group_name
         /** 先存一部分 */
         e = {
             adapter: "QQGuild",
@@ -53,15 +62,15 @@ export default new class message {
             message_type: message_type,
             post_type: "message",
             sub_type: sub_type,
-            self_id: id,
+            self_id: this.id,
             seq: msg.seq,
             time: time,
-            uin: id,
+            uin: this.id,
             user_id: user_id
         }
 
         /** 构建message */
-        const { message, toString, atBot } = this._message(data)
+        const { message, toString, atBot } = this.message()
         e.atme = atBot
         e.atBot = atBot
         /** 这个不用我多说了吧... */
@@ -94,11 +103,11 @@ export default new class message {
             /** 禁言 */
             mute: async (time) => {
                 const options = { seconds: time }
-                await Api.muteMember(id, msg.guild_id, msg.author.id, options)
+                return await Bot[this.id].client.muteApi.muteMember(msg.guild_id, msg.author.id, options)
             },
             /** 踢 */
             kick: async () => {
-                await Api.deleteGuildMember(id, msg.guild_id, msg.author.id)
+                return await Bot[id].client.guildApi.deleteGuildMember(msg.guild_id, msg.author.id)
             }
         }
 
@@ -111,18 +120,18 @@ export default new class message {
         /** 构建场景对应的方法 */
         if (type === "私信") {
             e.friend = {
-                sendMsg: async (reply, reference) => {
-                    return await (new guild).reply(data, reply, reference)
+                sendMsg: async (reply, quote) => {
+                    return await (new guild).reply(this.data, reply, quote)
                 },
-                recallMsg: (msg_id) => {
-                    logger.info(`${Bot[id].name} 撤回消息：${msg_id}`)
-                    return Api.deleteMessage(id, msg.channel_id, msg_id, false)
+                recallMsg: async (msg_id) => {
+                    logger.info(`${Bot[this.id].name} 撤回消息：${msg_id}`)
+                    return await Bot[id].client.messageApi.deleteMessage(msg.channel_id, msg_id, false)
                 },
                 makeForwardMsg: async (forwardMsg) => {
-                    return await this.makeForwardMsg(forwardMsg, data)
+                    return await makeForwardMsg(forwardMsg, this.data)
                 },
                 getChatHistory: async (msg_id, num) => {
-                    const source = await this.getChatHistory(id, msg.channel_id, msg_id)
+                    const source = await this.getChatHistory(msg.channel_id, msg_id)
                     return [source]
                 },
                 getAvatarUrl: async () => {
@@ -139,30 +148,30 @@ export default new class message {
                     }
                 },
                 getChatHistory: async (msg_id, num) => {
-                    const source = await this.getChatHistory(id, msg.channel_id, msg_id)
+                    const source = await this.getChatHistory(msg.channel_id, msg_id)
                     return [source]
                 },
-                recallMsg: (msg_id) => {
-                    logger.info(`${Bot[id].name} 撤回消息：${msg_id}`)
-                    return Api.deleteMessage(id, msg.channel_id, msg_id, false)
+                recallMsg: async (msg_id) => {
+                    logger.info(`${Bot[this.id].name} 撤回消息：${msg_id}`)
+                    return await Bot[id].client.messageApi.deleteMessage(msg.channel_id, msg_id, false)
                 },
-                sendMsg: async (reply, reference) => {
-                    return await (new guild).reply(data, reply, reference)
+                sendMsg: async (reply, quote) => {
+                    return await (new guild).reply(this.data, reply, quote)
                 },
                 makeForwardMsg: async (forwardMsg) => {
-                    return await this.makeForwardMsg(forwardMsg, data)
+                    return await makeForwardMsg(forwardMsg, this.data)
                 }
             }
         }
 
         /** 快速撤回 */
-        e.recall = () => {
+        e.recall = async () => {
             logger.info(`${this.name} 撤回消息：${msg.id}`)
-            return Api.deleteMessage(id, msg.channel_id, msg.id, false)
+            return await Bot[id].client.messageApi.deleteMessage(msg.channel_id, msg.id, false)
         }
         /** 快速回复 */
-        e.reply = async (reply, reference) => {
-            return await (new guild).reply(data, reply, reference)
+        e.reply = async (reply, quote) => {
+            return await (new guild).reply(this.data, reply, quote)
         }
         /** 将收到的消息转为字符串 */
         e.toString = () => {
@@ -171,7 +180,7 @@ export default new class message {
 
         /** 引用消息 */
         if (msg?.message_reference?.message_id) {
-            const reply = (await Api.message(id, msg.channel_id, msg.message_reference.message_id)).message
+            const reply = (await Api.message(this.id, msg.channel_id, msg.message_reference.message_id)).message
             let message = []
             if (reply.attachments) {
                 for (let i of reply.attachments) {
@@ -192,7 +201,7 @@ export default new class message {
             }
         }
         /** 打印日志 */
-        if (data.checkBlack) {
+        if (this.data.checkBlack) {
             logger.mark(this.log(e))
         } else {
             Bot.qg.cfg.isLog ? logger.info(this.log(e)) : logger.debug(this.log(e))
@@ -201,12 +210,19 @@ export default new class message {
         return e
     }
 
+    /** 撤回消息 */
+    async recallMsg(channel_id, msg_id) {
+        `[QQ频道]撤回消息:\n`
+        logger.info(`${this.name} 撤回消息：${msg_id}`)
+        return await Bot[this.id].client.messageApi.deleteMessage(channel_id, msg_id, false)
+    }
+
     /** 构建message */
-    _message(data) {
+    message() {
         let atBot = false
         const message = []
         const raw_message = []
-        const { id, msg } = data
+        const { msg } = this.data
 
         /** at、表情、文本 */
         if (msg.content) {
@@ -223,7 +239,7 @@ export default new class message {
                 if (i.startsWith("<@")) {
                     let user_id = i.slice(3, -1)
                     const name = at_name(user_id)
-                    if (Bot[id].id === user_id) {
+                    if (Bot[this.id].id === user_id) {
                         user_id = Bot.uin
                         atBot = true
                     } else {
@@ -237,7 +253,7 @@ export default new class message {
                     message.push({ type: "face", text: faceValue })
                 } else {
                     /** 前缀处理 */
-                    if (i && Bot.qg.cfg.prefix && !Bot.qg.cfg.prefixBlack.includes(id)) {
+                    if (i && Bot.qg.cfg.prefix && !Bot.qg.cfg.prefixBlack.includes(this.id)) {
                         i = i.trim().replace(/^\//, "#")
                     }
                     raw_message.push(i)
@@ -265,63 +281,9 @@ export default new class message {
         return { message, toString, atBot }
     }
 
-    /** 转发 */
-    async makeForwardMsg(forwardMsg, data = {}) {
-        const message = {}
-        const new_msg = []
-        /** 防止报错 */
-        if (!Array.isArray(forwardMsg)) forwardMsg = [forwardMsg]
-
-        for (const i_msg of forwardMsg) {
-            const msg = i_msg.message
-            /** 处理无限套娃 */
-            if (typeof msg === "object" && (msg?.data?.type === "test" || msg?.type === "xml")) {
-                new_msg.push(...msg.msg)
-            }
-            /** 兼容喵崽更新抽卡记录 */
-            else if (Array.isArray(msg)) {
-                msg.forEach(i => {
-                    if (typeof i === "string") {
-                        new_msg.push({ type: "forward", text: i.trim().replace(/^\\n{1,3}|\\n{1,3}$/g, "") })
-                    } else {
-                        new_msg.push(i)
-                    }
-                })
-            }
-            /** 优先处理日志 */
-            else if (typeof msg === "object" && /^#.*日志$/.test(data?.msg?.content)) {
-                const splitMsg = msg.split("\n").map(i => {
-                    if (!i || i.trim() === "") return
-                    if (qg.cfg.cfg.分片转发) {
-                        return { type: "forward", text: i.substring(0, 1000).trim().replace(/^\\n{1,3}|\\n{1,3}$/g, "") }
-                    } else {
-                        return { type: "forward", text: i.substring(0, 100).trim().replace(/^\\n{1,3}|\\n{1,3}$/g, "") }
-                    }
-                })
-                new_msg.push(...splitMsg.slice(0, 50))
-            }
-            /** AT 表情包 */
-            else if (typeof msg === "object") {
-                new_msg.push(msg)
-            }
-            /** 普通文本 */
-            else if (typeof msg === "string") {
-                /** 正常文本 */
-                new_msg.push({ type: "forward", text: msg.replace(/^\\n{1,3}|\\n{1,3}$/g, "") })
-            }
-            else {
-                logger.error("未知字段，请反馈至作者：", msg)
-            }
-        }
-        /** 对一些重复元素进行去重 */
-        message.msg = Array.from(new Set(new_msg.map(JSON.stringify))).map(JSON.parse)
-        message.data = { type: "test", text: "forward", app: "com.tencent.multimsg", meta: { detail: { news: [{ text: "1" }] }, resid: "", uniseq: "", summary: "" } }
-        return message
-    }
-
     /** 获取聊天记录 */
-    async getChatHistory(appID, channel, msg_id) {
-        const source = await Api.message(appID, channel, msg_id)
+    async getChatHistory(channelID, msg_id) {
+        const source = await Bot[this.id].client.messageApi.message(channelID, msg_id)
         const { id, content, author, guild_id, channel_id, timestamp, member } = source.message
         const time = (new Date(timestamp)).getTime() / 1000
 
@@ -354,7 +316,7 @@ export default new class message {
                 user_id: "qg_" + author.id,
                 nickname: author.username,
                 sub_id: undefined,
-                card: "",
+                card: author.username,
                 sex: "unknown",
                 age: 0,
                 area: "",

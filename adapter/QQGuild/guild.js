@@ -1,8 +1,10 @@
+import { logModule } from "./log.js"
 import SendMsg from "./sendMsg.js"
 import Api from "../../model/api.js"
+import { makeForwardMsg } from "../../plugins/loader.js"
 import log_msg from "../../model/log.js"
 import message from "../../model/message.js"
-import QQGuildLoader from "../../plugins/loader.js"
+import loader from "../../plugins/loader.js"
 import pluginsLoader from "../../../../lib/plugins/loader.js"
 import { createOpenAPI, createWebsocket } from "qq-guild-bot"
 
@@ -51,6 +53,9 @@ export default class guild {
         /** 在this保存一下 */
         this.client = Bot[this.id].client
 
+        /** 告知用户已连接成功 */
+        await logModule(this.id, `${logger.green(`${this.name}(${this.id})连接成功，正在加载资源中...`)}`)
+
         /** 保存bot的信息 */
         await this.me(this.id)
         /** 延迟下 */
@@ -59,10 +64,7 @@ export default class guild {
         await this.guilds(this.id)
     }
 
-    /** @param ms 毫秒 */
-    sleep(ms) {
-        return new Promise((resolve) => setTimeout(resolve, ms))
-    }
+
 
     /** 保存bot的信息 */
     async me() {
@@ -76,15 +78,22 @@ export default class guild {
         Bot[this.id] = {
             ...Bot[this.id],
             fl: new Map(),
+            /** 群列表 */
             gl: new Map(),
+            /** 子频道列表 */
             gml: new Map(),
             uin: this.id,
+            tiny_id: `qg_${bot.id}`,
             guild_id: bot.id,
             nickname: bot.username,
             avatar: bot.avatar,
             stat: { start_time: Date.now() / 1000 },
             apk: { display: Bot.qg.guild.name, version: Bot.qg.guild.ver },
             version: { id: "qg", name: "QQ频道Bot", version: Bot.qg.guild.guild_ver },
+            /** 转发 */
+            makeForwardMsg: async (forwardMsg) => {
+                return await makeForwardMsg(forwardMsg)
+            },
             pickGroup: (groupId) => {
                 const [guild_id, channel_id] = groupId.replace("qg_", "").split('-')
                 return {
@@ -92,9 +101,30 @@ export default class guild {
                         const newMsg = new SendMsg(this.id, channel_id, "MESSAGE_CREATE")
                         return await newMsg(msg, quote)
                     },
+                    /** 转发 */
                     makeForwardMsg: async (forwardMsg) => {
-                        return await message.makeForwardMsg(forwardMsg)
+                        return await makeForwardMsg(forwardMsg)
                     }
+                }
+            },
+            getGroupMemberInfo: async function (group_id, user_id) {
+                return {
+                    group_id,
+                    user_id,
+                    nickname: this.name,
+                    card: this.name,
+                    sex: "female",
+                    age: 6,
+                    join_time: "",
+                    last_sent_time: "",
+                    level: 1,
+                    role: "member",
+                    title: "",
+                    title_expire_time: "",
+                    shutup_time: 0,
+                    update_time: "",
+                    area: "南极洲",
+                    rank: "潜水",
                 }
             }
         }
@@ -114,57 +144,69 @@ export default class guild {
     /** 获取一些基本信息 */
     async guilds(id) {
         /** 加载机器人所在频道、将对应的子频道信息存入变量中用于后续调用 */
-        const meGuilds = await Api.meGuilds(id)
+        const meGuilds = await this.client.meApi.meGuilds()
 
         for (let qg of meGuilds) {
-            /** 保存一些初始配置 */
-            const guildInfo = { ...qg, channels: {} }
-            Bot.qg.guilds[qg.id] = guildInfo
-            Bot.qg.guilds[qg.id].id = id
+            /** 管理员 */
+            let admin = false
+
+            /** 判断机器人是否为超级管理员 */
+            try {
+                const Member = await this.client.guildApi.guildMember(qg.id, this.guild_id)
+                admin = Member.roles.includes("2") ? true : false
+            } catch (err) {
+                await logModule(this.id, `Bot${this.name}(${this.id})无法在频道${qg.id}中获取自身身份组...\n错误信息：${err}`)
+            }
+
+            /** 保存所有bot的频道列表 */
+            Bot.qg.guilds[qg.id] = {
+                ...qg,
+                admin,
+                id: this.id,
+                channels: {}
+            }
 
             /** 延迟下 */
             await this.sleep(200)
-            /** 判断机器人是否为超级管理员 */
-            try {
-                const admin = await Api.guildMember(id, qg.id, user.id)
-                Bot.qg.guilds[qg.id].admin = admin.roles.includes("2") ? true : false
-            } catch (err) {
-                Bot.qg.guilds[qg.id].admin = false
-            }
 
             try {
-                /** 添加子频道列表到Bot.gl中，用于主动发送消息 */
-                const channelList = await Api.channels(id, qg.id)
+                /** 添加频道列表到Bot.gl中，用于主动发送消息 */
+                const channelList = await this.client.channelApi.channels(qg.id)
                 for (const i of channelList) {
-                    const guild_name = Bot.qg.guilds[i.guild_id]?.name || ""
+                    /** 存一份给锅巴用 */
                     Bot.gl.set(`qg_${i.guild_id}-${i.id}`, {
-                        id: id,
+                        id: this.id,
                         group_id: `qg_${i.guild_id}-${i.id}`,
-                        group_name: guild_name ? `${guild_name}-${i.name}` : "未知",
+                        group_name: `${qg.name || "未知"}-${i.name || "未知"}`,
                         guild_id: i.guild_id,
-                        guild_name: guild_name,
+                        guild_name: qg.name,
                         channel_id: i.id,
                         channel_name: i.name
                     })
-                }
-
-                /** 忘了干啥的... */
-                for (let subChannel of channelList) {
-                    guildInfo.channels[subChannel.id] = subChannel.name
+                    /** 存对应uin */
+                    Bot[this.id].gl.set(`qg_${i.guild_id}-${i.id}`, {
+                        id: this.id,
+                        group_id: `qg_${i.guild_id}-${i.id}`,
+                        group_name: `${qg.name || "未知"}-${i.name || "未知"}`,
+                        guild_id: i.guild_id,
+                        guild_name: qg.name,
+                        channel_id: i.id,
+                        channel_name: i.name
+                    })
+                    /** 子频道id和对应名称 */
+                    Bot.qg.guilds[i.guild_id].channels[i.id] = i.name || "未知子频道"
                 }
             } catch (err) {
-                logger.error(`QQ频道机器人 [${this.name}(${id}) 无权在 [${qg.name}] 获取子频道列表...请在机器人设置-权限设置-频道权限中，给予基础权限...`)
+                await logModule(this.id, `Bot${this.name}(${this.id})在频道${qg.name}中无法获取子频道列表，已跳过`, true)
             }
         }
 
         try {
-
-            logger.mark(`${logger.green(`[QQ频道]${this.name}(${id})连接成功~`)}`)
             /** 检测是否重启 */
             const restart = await redis.get("qg:restart")
-            if (restart) if (JSON.parse(restart).appID === id) await this.init(restart)
+            if (restart && JSON.parse(restart).appID === id) await this.init(restart)
         } catch (error) {
-            logger.error(error)
+            await logModule(this.id, `重启错误：${error}`, true)
         }
     }
 
@@ -201,7 +243,7 @@ export default class guild {
 
         if (guild && channel) {
             data.checkBlack = true
-            return await QQGuildLoader.deal.call(pluginsLoader, await message.msg(data, type))
+            return await loader.deal.call(pluginsLoader, await message.msg(data, type))
         } else {
             data.checkBlack = false
             return await message.msg(data, type)
@@ -283,5 +325,10 @@ export default class guild {
             await Api.postMessage(appID, channel_id, { content: msg, msg_id: id })
         }
         redis.del("qg:restart")
+    }
+
+    /** @param ms 睡眠时间 - 毫秒 */
+    sleep(ms) {
+        return new Promise((resolve) => setTimeout(resolve, ms))
     }
 }
