@@ -5,6 +5,7 @@ import chokidar from "chokidar"
 import common from "../model/common.js"
 import guild from "../adapter/QQGuild/guild.js"
 import ComWeChat from "../adapter/WeChat/ComWx.js"
+import shamrock from "../adapter/shamrock/app.js"
 
 const _path = process.cwd() + "/plugins/Lain-plugin/config"
 
@@ -100,6 +101,7 @@ try {
 }
 
 await (new ComWeChat()).server()
+await (new shamrock()).server()
 
 logger.info(chalk.hex("#868ECC")(`Lain-plugin插件${Bot.lain.version}全部初始化完成~`))
 logger.info(chalk.hex("#868ECC")("https://gitee.com/Zyy955/Lain-plugin"))

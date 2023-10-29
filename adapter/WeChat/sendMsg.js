@@ -139,7 +139,7 @@ export default class SendMsg {
         }
         /** 留个容错防止炸了 */
         else {
-            await common.logModule(this.id, i, "error")
+            await common.log(this.id, i, "error")
             return { type: "text", data: { text: "未知格式...请寻找作者适配..." } }
         }
 

@@ -220,7 +220,7 @@ export default class message {
         msg += `\n  用户是否为机器人：${author.bot}`
         msg += `\n  消息内容：${content || "未知内容"}`
         /** 打印日志 */
-        await common.logModule(this.id, msg)
+        await common.log(this.id, msg)
         /** 撤回消息 */
         return (await Bot[this.id].client.messageApi.deleteMessage(channel_ID, msg_id, false)).data
     }
@@ -346,7 +346,7 @@ export default class message {
     async log(e) {
         let group_name = e.guild_name + "-私信"
         e.message_type === "group" ? group_name = e.group_name : ""
-        return await common.logModule(this.id, `频道消息：[${group_name}，${e.sender?.card || e.sender?.nickname}] ${e.raw_message}`, Bot.lain.cfg.isLog ? "info" : "debug")
+        return await common.log(this.id, `频道消息：[${group_name}，${e.sender?.card || e.sender?.nickname}] ${e.raw_message}`, Bot.lain.cfg.isLog ? "info" : "debug")
     }
 
     /** 处理消息、转换格式 */

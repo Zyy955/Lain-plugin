@@ -53,13 +53,13 @@ export default class guild {
         /** 保存bot的信息 */
         await this.me(this.id)
         /** 告知用户已连接成功 */
-        await common.logModule(this.id, "连接成功，正在加载资源中...")
+        await common.log(this.id, "连接成功，正在加载资源中...")
         /** 延迟下 */
         await common.sleep(200)
         /** 获取一些基本信息 */
         await this.guilds(this.id)
         /** 告知用户加载资源完成 */
-        await common.logModule(this.id, "加载资源完毕...")
+        await common.log(this.id, "加载资源完毕...")
     }
 
     /** 保存bot的信息 */
@@ -150,7 +150,7 @@ export default class guild {
                 const Member = (await this.client.guildApi.guildMember(qg.id, this.tiny_id)).data
                 admin = Member.roles.includes("2") ? true : false
             } catch (err) {
-                await common.logModule(this.id, `Bot无法在频道 ${qg.id} 中读取基础信息，请给予权限...错误信息：${err.message}`, "error")
+                await common.log(this.id, `Bot无法在频道 ${qg.id} 中读取基础信息，请给予权限...错误信息：${err.message}`, "error")
             }
 
             /** 保存所有bot的频道列表 */
@@ -192,7 +192,7 @@ export default class guild {
                     Bot.lain.guilds[i.guild_id].channels[i.id] = i.name || i.id
                 }
             } catch (err) {
-                await common.logModule(this.id, `Bot无法在频道 ${qg.id} 中读取子频道列表，请给予权限...错误信息：${err.message}`, "error")
+                await common.log(this.id, `Bot无法在频道 ${qg.id} 中读取子频道列表，请给予权限...错误信息：${err.message}`, "error")
             }
         }
 
@@ -201,7 +201,7 @@ export default class guild {
             const restart = await redis.get("qg:restart")
             if (restart && JSON.parse(restart).appID === id) await this.init(restart)
         } catch (error) {
-            await common.logModule(this.id, `重启错误：${error}`, "error")
+            await common.log(this.id, `重启错误：${error}`, "error")
         }
     }
 
@@ -289,7 +289,7 @@ export default class guild {
         }
         const _data = await Bot[this.id].client.directMessageApi.createDirectMessage(new_msg)
         const hi = "Lain-plugin：你好~"
-        await common.logModule(this.id, `发送私信消息：${hi}`)
+        await common.log(this.id, `发送私信消息：${hi}`)
         await Bot[this.id].client.directMessageApi.postDirectMessage(_data.data.guild_id, { content: hi })
     }
 

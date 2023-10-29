@@ -27,19 +27,19 @@ export default class ComWeChat {
         server.on("connection", async (bot) => {
             Bot.lain.wc = bot
             bot.on("message", async (data) => { await this.message(data) })
-            bot.on("close", async () => { await common.logModule(this.id, "PC微信通知：连接已关闭") })
+            bot.on("close", async () => { await common.log(this.id, "PC微信通知：连接已关闭") })
         })
         /** 捕获错误 */
         server.on('error', async error => {
             if (error.code === "EADDRINUSE") {
                 const msg = `PC微信通知：启动WS服务器失败，端口${this.port}已被占用，请自行解除端口`
-                return await common.logModule(this.id, msg, "error")
+                return await common.log(this.id, msg, "error")
             }
             const msg = `PC微信-发生错误：${error.message}`
-            await common.logModule(this.id, msg, "error")
-            return await common.logModule(this.id, msg, "debug")
+            await common.log(this.id, msg, "error")
+            return await common.log(this.id, msg, "debug")
         })
-        await common.logModule(this.id, `本地 ComWeChat 连接地址：${logger.blue(`ws://localhost:${this.port}${this.path}`)}`)
+        await common.log(this.id, `本地 ComWeChat 连接地址：${logger.blue(`ws://localhost:${this.port}${this.path}`)}`)
     }
 
     async message(data) {
@@ -50,13 +50,13 @@ export default class ComWeChat {
         const eventHandler = {
             /** 连接 */
             connect: async () => {
-                await common.logModule(this.id, `开始建立连接：${JSON.stringify(version)}`)
+                await common.log(this.id, `开始建立连接：${JSON.stringify(version)}`)
                 Bot.lain.wc.send(JSON.stringify({ detail_type: "status_update", status_update: {} }))
             },
 
             /** 心跳 */
             heartbeat: async () => {
-                await common.logModule(this.id, `PC微信-心跳校验：${interval}`, "debug")
+                await common.log(this.id, `PC微信-心跳校验：${interval}`, "debug")
                 // Bot.lain.wc.send(JSON.stringify({ detail_type: "heartbeat", interval: interval }))
             },
 
@@ -67,85 +67,85 @@ export default class ComWeChat {
 
             /** 群消息 */
             group: async () => {
-                await common.logModule(this.id, `群消息：[${group_id}，${user_id}] ${parse.alt_message}`)
+                await common.log(this.id, `群消息：[${group_id}，${user_id}] ${parse.alt_message}`)
                 /** 转换消息 交由云崽处理 */
                 PluginsLoader.deal(await (new e(this.id)).msg(parse))
             },
 
             /** 好友消息 */
             private: async () => {
-                await common.logModule(this.id, `好友消息：[${user_id}] ${parse.alt_message}`)
+                await common.log(this.id, `好友消息：[${user_id}] ${parse.alt_message}`)
                 /** 转换消息 交由云崽处理 */
                 PluginsLoader.deal(await (new e(this.id)).msg(parse))
             },
 
             /** 好友申请 */
             "wx.friend_request": async () => {
-                await common.logModule(this.id, "好友申请：" + `用户 ${parse.user_id} 请求添加好友 请求理由：${parse.content}`)
+                await common.log(this.id, "好友申请：" + `用户 ${parse.user_id} 请求添加好友 请求理由：${parse.content}`)
                 /** 通过好友申请 */
                 if (Bot.lain.cfg.autoFriend == 1) {
                     api.accept_friend(parse.v3, parse.v4)
-                    await common.logModule(this.id, `已通过用户 ${parse.user_id} 的好友申请`)
+                    await common.log(this.id, `已通过用户 ${parse.user_id} 的好友申请`)
                 }
             },
 
             /** 好友撤回消息 */
             private_message_delete: async () => {
-                await common.logModule(this.id, "撤回消息：" + JSON.stringify(parse))
+                await common.log(this.id, "撤回消息：" + JSON.stringify(parse))
             },
 
             /** 群聊撤回消息 */
             group_message_delete: async () => {
-                await common.logModule(this.id, "撤回消息：" + JSON.stringify(parse))
+                await common.log(this.id, "撤回消息：" + JSON.stringify(parse))
             },
 
             /** 好友接接收文件 */
             "wx.get_private_file": async () => {
-                await common.logModule(this.id, "收到文件：" + JSON.stringify(parse))
+                await common.log(this.id, "收到文件：" + JSON.stringify(parse))
             },
 
             /** 群聊接收文件 */
             "wx.get_group_file": async () => {
-                await common.logModule(this.id, "收到文件：" + JSON.stringify(parse))
+                await common.log(this.id, "收到文件：" + JSON.stringify(parse))
             },
 
             /** 好友收到红包 */
             "wx.get_private_redbag": async () => {
-                await common.logModule(this.id, "收到红包：" + JSON.stringify(parse))
+                await common.log(this.id, "收到红包：" + JSON.stringify(parse))
             },
 
             /** 群聊收到红包 */
             "wx.get_group_redbag": async () => {
-                await common.logModule(this.id, "收到红包：" + JSON.stringify(parse))
+                await common.log(this.id, "收到红包：" + JSON.stringify(parse))
             },
 
             /** 好友拍一拍 */
             "wx.get_private_poke": async () => {
-                await common.logModule(this.id, `好友消息：${parse.from_user_id} 拍了拍 ${parse.user_id}`)
+                await common.log(this.id, `好友消息：${parse.from_user_id} 拍了拍 ${parse.user_id}`)
                 /** 转换消息 交由云崽处理 */
                 PluginsLoader.deal(await (new e(this.id)).msg(parse))
             },
 
             /** 群聊拍一拍 */
             "wx.get_group_poke": async () => {
-                await common.logModule(this.id, `群消息：${parse.from_user_id} 拍了拍 ${parse.user_id}`)
+                await common.log(this.id, `群消息：${parse.from_user_id} 拍了拍 ${parse.user_id}`)
                 /** 转换消息 交由云崽处理 */
                 PluginsLoader.deal(await (new e(this.id)).msg(parse))
             },
 
             /** 好友收到名片 */
             "wx.get_private_card": async () => {
-                await common.logModule(this.id, "收到名片：" + JSON.stringify(parse))
+                await common.log(this.id, "收到名片：" + JSON.stringify(parse))
             },
 
             /** 群聊收到名片 */
             "wx.get_group_card": async () => {
-                await common.logModule(this.id, "收到名片：" + JSON.stringify(parse))
+                await common.log(this.id, "收到名片：" + JSON.stringify(parse))
             },
 
             /** 默认处理 */
             default: async () => {
-                await common.logModule(this.id, "未知事件：" + JSON.stringify(parse))
+                await common.log(this.id, "未知事件：" + JSON.stringify(parse))
             }
         }
 
@@ -245,7 +245,7 @@ export default class ComWeChat {
             Bot.adapter = Array.from(new Set(Bot.adapter.map(JSON.stringify))).map(JSON.parse)
         }
 
-        await common.logModule(this.id, "状态更新：ComWeChat已连接，正在加载资源中...")
+        await common.log(this.id, "状态更新：ComWeChat已连接，正在加载资源中...")
         await common.sleep(1000)
 
         /** 获取群聊列表啦~ */
@@ -253,14 +253,14 @@ export default class ComWeChat {
         for (let retries = 0; retries < 5; retries++) {
             group_list = await api.get_group_list()
             if (!(group_list && typeof group_list === "object")) {
-                await common.logModule(this.id, `微信群列表获取失败，正在重试：${retries + 1}`, "error")
+                await common.log(this.id, `微信群列表获取失败，正在重试：${retries + 1}`, "error")
             }
             await common.sleep(1000)
         }
 
         /** 群列表获取失败 */
         if (!group_list) {
-            await common.logModule(this.id, `微信群列表获取失败次数过多，已停止重试`, "error")
+            await common.log(this.id, `微信群列表获取失败次数过多，已停止重试`, "error")
         }
 
         if (group_list && typeof group_list === "object") {
@@ -277,14 +277,14 @@ export default class ComWeChat {
         for (let retries = 0; retries < 5; retries++) {
             friend_list = await api.get_friend_list()
             if (!(friend_list && typeof friend_list === "object")) {
-                await common.logModule(this.id, `微信好友列表获取失败，正在重试：${retries + 1}`, "error")
+                await common.log(this.id, `微信好友列表获取失败，正在重试：${retries + 1}`, "error")
             }
             await common.sleep(1000)
         }
 
         /** 好友列表获取失败 */
         if (!group_list) {
-            await common.logModule(this.id, `微信好友列表获取失败次数过多，已停止重试`, "error")
+            await common.log(this.id, `微信好友列表获取失败次数过多，已停止重试`, "error")
         }
 
         if (friend_list && typeof friend_list === "object") {
@@ -296,7 +296,7 @@ export default class ComWeChat {
             }
         }
 
-        await common.logModule(this.id, "PC微信加载资源成功...")
+        await common.log(this.id, "PC微信加载资源成功...")
     }
 
 }

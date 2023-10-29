@@ -106,7 +106,7 @@ function msg(msg) {
             return await sendMsg(reply)
         },
         recallMsg: async (msg_id) => {
-            return await common.logModule(uin, `撤回消息：${msg_id}`)
+            return await common.log(uin, `撤回消息：${msg_id}`)
         },
         makeForwardMsg: async (forwardMsg) => {
             return await makeForwardMsg(forwardMsg)
@@ -115,7 +115,7 @@ function msg(msg) {
 
     /** 快速撤回 */
     e.recall = async () => {
-        return await common.logModule(uin, `撤回消息：${msg_id}`)
+        return await common.log(uin, `撤回消息：${msg_id}`)
     }
     /** 快速回复 */
     e.reply = async (reply) => {
@@ -134,7 +134,7 @@ function msg(msg) {
 
             }
         }
-        return await common.logModule(uin, `发送消息：${log.join('\n')}`)
+        return await common.log(uin, `发送消息：${log.join('\n')}`)
     }
     return e
 }
@@ -155,4 +155,4 @@ async function makeForwardMsg(forwardMsg) {
     }
 }
 
-await common.logModule(uin, `加载完成...您可以在控制台输入指令哦~`)
+await common.log(uin, `加载完成...您可以在控制台输入指令哦~`)

@@ -31,13 +31,13 @@ export default class SendMsg {
         /** 将云崽过来的消息统一为数组 */
         msg = await common.array(msg)
         /** 转为api格式、打印日志、发送 */
-        return await this.qg_msg(msg, quote)
+        return await this.qg_msg(msg)
     }
 
 
 
     /** 转为频道格式的消息 */
-    async qg_msg(msg, quote) {
+    async qg_msg(msg) {
         let image = {}
         let content = []
         /** 单独存储多图片，严格按照图片顺序进行发送 */
@@ -88,7 +88,7 @@ export default class SendMsg {
         content = content.join("").replace(/\n{1,2}$/g, '').replace(/\n{3,4}/g, '\n')
         const Api_msg = { content: content, ...image }
         if (!content && content === "" && Object.keys(image).length === 0) return
-        const res = await this.SendMsg(await this.Construct_data(Api_msg, quote))
+        const res = await this.SendMsg(await this.Construct_data(Api_msg))
 
         /** 处理分片 */
         if (ArrImg.length > 0) {
@@ -212,7 +212,7 @@ export default class SendMsg {
     }
 
     /** 构建请求参数并打印日志 */
-    async Construct_data(Api_msg, quote) {
+    async Construct_data(Api_msg) {
         let logs = ""
         let msg = {}
         let { content, type, image, log } = Api_msg
@@ -249,7 +249,7 @@ export default class SendMsg {
             case "url":
                 logs += Api_msg.log
                 /** 引用消息 */
-                if (quote) {
+                if (this.quote) {
                     msg.message_quote = {
                         message_id: this.msg_id,
                         ignore_get_message_error: true
@@ -260,7 +260,7 @@ export default class SendMsg {
                 break
             default:
                 /** 引用消息 */
-                if (quote) {
+                if (this.quote) {
                     msg.message_quote = {
                         message_id: this.msg_id,
                         ignore_get_message_error: true
@@ -275,7 +275,7 @@ export default class SendMsg {
             else msg.content = content
             logs += content
         }
-        await common.logModule(this.id, `发送消息：[${this.group_name}] ${logs}`)
+        await common.log(this.id, `发送消息：[${this.group_name}] ${logs}`)
         return msg
     }
 
