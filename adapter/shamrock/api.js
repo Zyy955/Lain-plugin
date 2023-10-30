@@ -339,7 +339,7 @@ const api = {
         const params = { group_id, user_id }
         return await this.SendApi(id, "group_touch", params)
     },
-    
+
     /**
      * 上传私聊文件
      * @param {string} id - 机器人QQ
@@ -456,13 +456,15 @@ const api = {
 
     /** 发送请求事件 */
     async SendApi(id, action, params) {
-        const bot = Bot.shamrock.get(id)
+        const bot = Bot.shamrock.get(String(id))
         if (!bot) return common.log(id, "不存在此Bot")
         const echo = randomUUID()
         return new Promise((resolve) => {
-            bot.socket.once("message", (res) => {
-                const data = JSON.parse(res)
-                resolve(data?.data || data)
+            bot.socket.on("message", (res) => {
+                const data = JSON.parse(res);
+                if (data?.echo === echo) {
+                    resolve(data?.data || data);
+                }
             })
             bot.socket.send(JSON.stringify({ echo, action, params }))
         })

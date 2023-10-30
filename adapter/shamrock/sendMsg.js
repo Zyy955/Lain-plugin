@@ -1,9 +1,6 @@
 import fs from "fs"
-import path from "path"
-import fetch from "node-fetch"
-import api from "./api.js"
+import { randomUUID } from "crypto"
 import common from "../../model/common.js"
-import { fileTypeFromBuffer } from "file-type"
 
 export default class SendMsg {
     /** 传入基本配置 */
@@ -99,7 +96,7 @@ export default class SendMsg {
 
     /** 统一图片格式 */
     async get_image(i) {
-
+        let file
         /** 特殊格式？... */
         if (i.file?.type === "Buffer") {
             file = `base64://${Buffer.from(i.file.data).toString("base64")}`
@@ -140,7 +137,7 @@ export default class SendMsg {
 
     /** 发送消息 */
     async SendMsg(msg, id) {
-        const bot = Bot.shamrock.get(this.id)
+        const bot = Bot.shamrock.get(String(this.id))
         if (!bot) return common.log(this.id, "不存在此Bot")
 
         const echo = randomUUID()
