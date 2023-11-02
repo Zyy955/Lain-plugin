@@ -134,7 +134,7 @@ export default class SendMsg {
         }
         /** url图片 */
         else if (/^http(s)?:\/\//.test(file)) {
-            return { type: "image", data: { url: file } }
+            return { type: "image", data: { file, url: file } }
         }
         /** 留个容错防止炸了 */
         else {
