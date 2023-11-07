@@ -21,7 +21,7 @@ export default new class zaiMsg {
             e.message = message
             if (source) {
                 e.source = source
-                e.source?.message = source?.raw_message
+                e.source.message = source.raw_message
             }
         } else if (e.post_type === "notice" && e.sub_type === "poke") {
             e.action = "戳了戳"
