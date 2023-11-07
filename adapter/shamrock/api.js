@@ -466,6 +466,41 @@ let api = {
     },
 
 
+    /**
+     * 获取历史消息
+     * @param {string} id - 机器人QQ
+     * @param {string} message_type - 消息 类型 必填
+     * @param {number} user_id - 私聊QQ
+     * @param {number} group_id - 群号
+     * @param {number} count - 获取的消息数量（默认为20）
+     */
+    async get_history_msg(id, message_type, user_id, group_id, count) {
+        const params = { message_type, user_id, group_id, count }
+        return await this.SendApi(id, "get_history_msg", params)
+    },
+
+    /**
+     * 获取群聊历史消息
+     * @param {string} id - 机器人QQ
+     * @param {number} group_id - 群号
+     * @param {number} count - 获取的消息数量（默认为20）
+     */
+    async get_group_msg_history(id, group_id, count) {
+        const params = { group_id, count }
+        return await this.SendApi(id, "get_group_msg_history", params)
+    },
+
+    /**
+     * 清除本地缓存消息
+     * @param {string} message_type - 消息 类型 必填
+     * @param {number} user_id - 私聊QQ
+     * @param {number} group_id - 群号
+     */
+    async clear_msgs(id, message_type, user_id, group_id) {
+        const params = { user_id, message_type, group_id }
+        return await this.SendApi(id, "clear_msgs", params)
+    },
+
 
     async SendApi(id, action, params) {
         const bot = Bot.shamrock.get(String(id))
