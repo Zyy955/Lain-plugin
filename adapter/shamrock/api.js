@@ -470,7 +470,7 @@ let api = {
     /**
      * 获取历史消息
      * @param {string} id - 机器人QQ
-     * @param {string} message_type - 消息 类型 必填
+     * @param {string} message_type - 消息 类型 必填 （private或group）
      * @param {number} user_id - 私聊QQ
      * @param {number} group_id - 群号
      * @param {number} count - 获取的消息数量（默认为20）
@@ -493,6 +493,7 @@ let api = {
 
     /**
      * 清除本地缓存消息
+     * @param {string} id - 机器人QQ
      * @param {string} message_type - 消息 类型 必填
      * @param {number} user_id - 私聊QQ
      * @param {number} group_id - 群号
