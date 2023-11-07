@@ -4,6 +4,7 @@ import SendMsg from "./sendMsg.js"
 import e from "./message.js"
 import common from "../../model/common.js"
 import PluginsLoader from "../../../../lib/plugins/loader.js"
+import { init } from "../../index.js"
 
 class WeChat {
     /** 传入基本配置 */
@@ -20,13 +21,19 @@ class WeChat {
     /** 处理监听事件 */
     async server(bot, request) {
         Bot.lain.wc = bot
-        bot.on("message", async (data) => { await this.message(data) })
+        bot.on("message", async (data) => {
+            data = JSON.parse(data)
+            logger.debug(`WeChat:`, data)
+            if (data?.echo) {
+                return Bot.lain.on.set(data.echo, data)
+            }
+            await this.message(data)
+        })
         bot.on("close", async () => { await common.log(this.id, "PC微信通知：连接已关闭") })
     }
 
     async message(data) {
-        const parse = JSON.parse(data)
-        const { detail_type, interval, group_id, user_id, message, version } = parse
+        const { detail_type, interval, group_id, user_id, message, version } = data
         if (!detail_type) return
 
         const eventHandler = {
@@ -49,85 +56,85 @@ class WeChat {
 
             /** 群消息 */
             group: async () => {
-                await common.log(this.id, `群消息：[${group_id}，${user_id}] ${parse.alt_message}`)
+                await common.log(this.id, `群消息：[${group_id}，${user_id}] ${data.alt_message}`)
                 /** 转换消息 交由云崽处理 */
-                PluginsLoader.deal(await (new e(this.id)).msg(parse))
+                PluginsLoader.deal(await (new e(this.id)).msg(data))
             },
 
             /** 好友消息 */
             private: async () => {
-                await common.log(this.id, `好友消息：[${user_id}] ${parse.alt_message}`)
+                await common.log(this.id, `好友消息：[${user_id}] ${data.alt_message}`)
                 /** 转换消息 交由云崽处理 */
-                PluginsLoader.deal(await (new e(this.id)).msg(parse))
+                PluginsLoader.deal(await (new e(this.id)).msg(data))
             },
 
             /** 好友申请 */
             "wx.friend_request": async () => {
-                await common.log(this.id, "好友申请：" + `用户 ${parse.user_id} 请求添加好友 请求理由：${parse.content}`)
+                await common.log(this.id, "好友申请：" + `用户 ${data.user_id} 请求添加好友 请求理由：${data.content}`)
                 /** 通过好友申请 */
                 if (Bot.lain.cfg.autoFriend == 1) {
-                    api.accept_friend(parse.v3, parse.v4)
-                    await common.log(this.id, `已通过用户 ${parse.user_id} 的好友申请`)
+                    api.accept_friend(data.v3, data.v4)
+                    await common.log(this.id, `已通过用户 ${data.user_id} 的好友申请`)
                 }
             },
 
             /** 好友撤回消息 */
             private_message_delete: async () => {
-                await common.log(this.id, "撤回消息：" + JSON.stringify(parse))
+                await common.log(this.id, "撤回消息：" + JSON.stringify(data))
             },
 
             /** 群聊撤回消息 */
             group_message_delete: async () => {
-                await common.log(this.id, "撤回消息：" + JSON.stringify(parse))
+                await common.log(this.id, "撤回消息：" + JSON.stringify(data))
             },
 
             /** 好友接接收文件 */
             "wx.get_private_file": async () => {
-                await common.log(this.id, "收到文件：" + JSON.stringify(parse))
+                await common.log(this.id, "收到文件：" + JSON.stringify(data))
             },
 
             /** 群聊接收文件 */
             "wx.get_group_file": async () => {
-                await common.log(this.id, "收到文件：" + JSON.stringify(parse))
+                await common.log(this.id, "收到文件：" + JSON.stringify(data))
             },
 
             /** 好友收到红包 */
             "wx.get_private_redbag": async () => {
-                await common.log(this.id, "收到红包：" + JSON.stringify(parse))
+                await common.log(this.id, "收到红包：" + JSON.stringify(data))
             },
 
             /** 群聊收到红包 */
             "wx.get_group_redbag": async () => {
-                await common.log(this.id, "收到红包：" + JSON.stringify(parse))
+                await common.log(this.id, "收到红包：" + JSON.stringify(data))
             },
 
             /** 好友拍一拍 */
             "wx.get_private_poke": async () => {
-                await common.log(this.id, `好友消息：${parse.from_user_id} 拍了拍 ${parse.user_id}`)
+                await common.log(this.id, `好友消息：${data.from_user_id} 拍了拍 ${data.user_id}`)
                 /** 转换消息 交由云崽处理 */
-                PluginsLoader.deal(await (new e(this.id)).msg(parse))
+                PluginsLoader.deal(await (new e(this.id)).msg(data))
             },
 
             /** 群聊拍一拍 */
             "wx.get_group_poke": async () => {
-                await common.log(this.id, `群消息：${parse.from_user_id} 拍了拍 ${parse.user_id}`)
+                await common.log(this.id, `群消息：${data.from_user_id} 拍了拍 ${data.user_id}`)
                 /** 转换消息 交由云崽处理 */
-                PluginsLoader.deal(await (new e(this.id)).msg(parse))
+                PluginsLoader.deal(await (new e(this.id)).msg(data))
             },
 
             /** 好友收到名片 */
             "wx.get_private_card": async () => {
-                await common.log(this.id, "收到名片：" + JSON.stringify(parse))
+                await common.log(this.id, "收到名片：" + JSON.stringify(data))
             },
 
             /** 群聊收到名片 */
             "wx.get_group_card": async () => {
-                await common.log(this.id, "收到名片：" + JSON.stringify(parse))
+                await common.log(this.id, "收到名片：" + JSON.stringify(data))
             },
 
             /** 默认处理 */
             default: async () => {
-                await common.log(this.id, "未知事件：" + JSON.stringify(parse))
+                await common.log(this.id, "未知事件：" + JSON.stringify(data))
             }
         }
 
@@ -218,14 +225,9 @@ class WeChat {
             }
         }
 
-        /** 注册uin */
-        if (!Bot?.adapter) {
-            Bot.adapter = [Bot.uin, this.id]
-        } else {
-            Bot.adapter.push(this.id)
-            /** 去重防止断连后出现多个重复的id */
-            Bot.adapter = Array.from(new Set(Bot.adapter.map(JSON.stringify))).map(JSON.parse)
-        }
+        Bot.adapter.push(this.id)
+        /** 去重防止断连后出现多个重复的id */
+        Bot.adapter = Array.from(new Set(Bot.adapter.map(JSON.stringify))).map(JSON.parse)
 
         await common.log(this.id, "状态更新：ComWeChat已连接，正在加载资源中...")
         await common.sleep(1000)
@@ -279,6 +281,8 @@ class WeChat {
         }
 
         await common.log(this.id, "PC微信加载资源成功...")
+        /** 重启 */
+        await init("Lain:restart:WeChat")
     }
 
 }

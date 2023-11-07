@@ -201,24 +201,8 @@ export default class message {
 
     /** 处理消息、转换格式 */
     async reply(msg, quote, group_name) {
-        if (msg === "开始执行重启，请稍等...") await this.restart()
         const { guild_id, channel_id } = this.data.msg
         /** 处理云崽过来的消息 */
         return await (new SendMsg(this.id, { guild_id, channel_id }, this.data.eventType, this.msg_id, group_name)).message(msg, quote)
-    }
-
-    /** 保存重启到redis中 */
-    async restart() {
-        const type = this.data.eventType === "DIRECT_MESSAGE_CREATE" ? "私信" : "群聊"
-        const { id, guild_id, channel_id } = this.data.msg
-        const cfg = JSON.stringify({
-            type: type,
-            time: new Date().getTime(),
-            appID: this.id,
-            id: id,
-            guild_id: guild_id,
-            channel_id: channel_id,
-        })
-        await redis.set("qg:restart", cfg, { EX: 120 })
     }
 }

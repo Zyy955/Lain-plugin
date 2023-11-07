@@ -129,20 +129,24 @@ const api = {
     async SendApi(params, action) {
         const echo = randomUUID()
 
-        let resolveFn
-        const onMessage = (res) => {
-            const data = JSON.parse(res)
-            if (data?.echo === echo) {
-                resolveFn(data?.data || data)
-                Bot.lain.wc.off("message", onMessage)
+        Bot.lain.wc.send(JSON.stringify({ echo, action, params }))
+
+        for (let i = 0; i < 20; i++) {
+            const data = await Bot.lain.on.get(echo)
+            if (data) {
+                Bot.lain.on.delete(echo)
+                try {
+                    if (Object.keys(data?.data).length > 0 && data?.data) return data.data
+                    return data
+                } catch {
+                    return data
+                }
+            } else {
+                await common.sleep(1000)
             }
         }
-
-        return new Promise((resolve) => {
-            resolveFn = resolve
-            Bot.lain.wc.on("message", onMessage)
-            Bot.lain.wc.send(JSON.stringify({ echo, action, params }))
-        })
+        /** 获取失败 */
+        return "获取失败"
     }
 }
 

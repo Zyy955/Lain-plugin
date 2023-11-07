@@ -1,6 +1,7 @@
 import SendMsg from "./sendMsg.js"
 import common from "../../model/common.js"
 import qg_log from "./log.js"
+import { init } from "../../index.js"
 import message from "./message.js"
 import loader from "../../plugins/loader.js"
 import pluginsLoader from "../../../../lib/plugins/loader.js"
@@ -126,16 +127,9 @@ export default class guild {
             }
         }
 
-
-        /** 注册uin */
-        if (!Bot?.adapter) {
-            Bot.adapter = [Bot.uin]
-            Bot.adapter.push(this.id)
-        } else {
-            Bot.adapter.push(this.id)
-            /** 去重防止断连后出现多个重复的id */
-            Bot.adapter = Array.from(new Set(Bot.adapter.map(JSON.stringify))).map(JSON.parse)
-        }
+        Bot.adapter.push(this.id)
+        /** 去重防止断连后出现多个重复的id */
+        Bot.adapter = Array.from(new Set(Bot.adapter.map(JSON.stringify))).map(JSON.parse)
     }
 
     /** 获取一些基本信息 */
@@ -195,14 +189,8 @@ export default class guild {
                 await common.log(this.id, `Bot无法在频道 ${qg.id} 中读取子频道列表，请给予权限...错误信息：${err.message}`, "error")
             }
         }
-
-        try {
-            /** 检测是否重启 */
-            const restart = await redis.get("qg:restart")
-            if (restart && JSON.parse(restart).appID === id) await this.init(restart)
-        } catch (error) {
-            await common.log(this.id, `重启错误：${error}`, "error")
-        }
+        /** 重启 */
+        await init("Lain:restart:QQGuild")
     }
 
     /** 根据对应事件进行对应处理 */
@@ -291,20 +279,6 @@ export default class guild {
         const hi = "Lain-plugin：你好~"
         await common.log(this.id, `发送私信消息：${hi}`)
         await Bot[this.id].client.directMessageApi.postDirectMessage(_data.data.guild_id, { content: hi })
-    }
-
-    /** 重启后发送主动消息 */
-    async init(restart) {
-        const cfg = JSON.parse(restart)
-        const { type, appID, id, guild_id, channel_id } = cfg
-        const time = (new Date().getTime() - cfg.time || new Date().getTime()) / 1000
-        const msg = `重启成功：耗时${time.toFixed(2)}秒`
-        if (type === "私信") {
-            await Bot[appID].client.directMessageApi.postDirectMessage(guild_id, { content: msg, msg_id: id })
-        } else {
-            await Bot[appID].client.messageApi.postMessage(channel_id, { content: msg, msg_id: id })
-        }
-        redis.del("qg:restart")
     }
 }
 

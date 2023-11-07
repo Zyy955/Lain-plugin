@@ -29,11 +29,12 @@ export default class SendMsg {
         if (!Array.isArray(msg)) msg = [{ type: "text", text: msg }]
         const content = []
         const CQ = []
+        const image = []
         let forward = []
         /** chatgpt-plugin */
         if (msg?.[0].type === "xml") msg = msg?.[0].msg
 
-        for (const i of msg) {
+        for (let i of msg) {
             /** 加个延迟防止过快 */
             await common.sleep(200)
             switch (i.type) {
@@ -58,6 +59,7 @@ export default class SendMsg {
                 case "file":
                     break
                 case "record":
+                    if (i?.url) i.file = i.url
                     CQ.push(`[CQ:record,file=${i.file}]`)
                     content.push({
                         type: "record",
@@ -73,7 +75,7 @@ export default class SendMsg {
                     break
                 case "image":
                     CQ.push(`[CQ:image,file=base64://...]`)
-                    content.push(await this.get_image(i))
+                    image.push(await this.get_image(i))
                     break
                 case "poke":
                     CQ.push(`[CQ:poke,id=${i.id}]`)
@@ -101,6 +103,7 @@ export default class SendMsg {
         }
         forward = forward.join("\n").trim()
         content.push({ type: "text", data: { text: forward } })
+        content.push(...image)
         return { content, CQ }
     }
 
@@ -153,21 +156,30 @@ export default class SendMsg {
         const echo = randomUUID()
         const action = this.isGroup ? "send_group_msg" : "send_private_msg"
         const params = { [this.isGroup ? "group_id" : "user_id"]: id, message: msg }
-        common.log(id, `发送${this.isGroup ? "群" : "好友"}${CQ.join("")}`)
+        common.log(this.id, `发送${this.isGroup ? "群" : "好友"}${CQ.join("")}`)
 
-        return new Promise((resolve) => {
-            bot.socket.once("message", (res) => {
-                const data = JSON.parse(res)
-                const msg_id = data?.data?.message_id
-                /** 返回消息id给撤回用？ */
-                resolve({
-                    seq: msg_id,
-                    rand: 1,
-                    time: data?.data?.time,
-                    message_id: msg_id
-                })
-            })
-            bot.socket.send(JSON.stringify({ echo, action, params }))
-        })
+        bot.socket.send(JSON.stringify({ echo, action, params }))
+
+        for (let i = 0; i < 10; i++) {
+            let data = await Bot.lain.on.get(echo)
+            if (data) {
+                Bot.lain.on.delete(echo)
+                try {
+                    if (Object.keys(data?.data).length > 0 && data?.data) {
+                        data.seq = data?.data?.message_id
+                        data.rand = 1
+                        return data?.data || data
+                    }
+                    return data
+                } catch {
+                    return data
+                }
+            } else {
+                await common.sleep(500)
+            }
+        }
+
+        /** 获取失败 */
+        return "获取失败"
     }
 }

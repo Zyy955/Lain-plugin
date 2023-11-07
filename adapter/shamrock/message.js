@@ -5,7 +5,7 @@ import api from "./api.js"
 export default new class zaiMsg {
     /** 转换格式给云崽 */
     async msg(data) {
-        const { self_id, user_id, group_id, message_type, message_id } = data
+        const { self_id, user_id, group_id, message_type, message_id, sender } = data
 
         let raw_message = data.raw_message
 
@@ -15,14 +15,14 @@ export default new class zaiMsg {
         /** 初始化e */
         let e = data
 
-        /** 添加适配器标识 */
-        e.adapter = "shamrock"
-
         if (data.post_type === "message") {
             /** 处理message，引用消息 */
             const { message, source } = await this.message(self_id, data.message)
             e.message = message
-            if (source) e.source = source
+            if (source) {
+                e.source = source
+                e.source?.message = source?.raw_message
+            }
         } else if (e.post_type === "notice" && e.sub_type === "poke") {
             e.action = "戳了戳"
             raw_message = `${e.operator_id} 戳了戳 ${e.user_id}`
@@ -38,9 +38,17 @@ export default new class zaiMsg {
         /** 先打印日志 */
         if (message_type === "private") {
             isGroup = false
-            await common.log(self_id, `好友消息：[${user_id}] ${raw_message}`)
+            await common.log(self_id, `好友消息：[${sender?.nickname || sender?.card}(${user_id})] ${raw_message}`)
         } else {
-            await common.log(self_id, `群消息：[${group_id}，${user_id}] ${raw_message}`)
+            let group_name
+
+            try {
+                group_name = Bot[self_id].gl.get(group_id)?.group_name
+            } catch {
+                group_name = group_id
+            }
+
+            await common.log(self_id, `群消息：[${group_name}，${sender?.nickname || sender?.card}(${user_id})] ${raw_message}`)
         }
 
         /** 快速撤回 */
@@ -60,7 +68,12 @@ export default new class zaiMsg {
 
         /** 构建场景对应的方法 */
         if (isGroup) {
-            e.group_name = Bot[self_id].gl.get(group_id)?.group_name || group_id
+            try {
+                e.group_name = Bot[self_id].gl.get(group_id)?.group_name || group_id
+            } catch {
+                e.group_name = group_id
+            }
+
             /** 构建member */
             e.member = {
                 info: {
@@ -90,7 +103,10 @@ export default new class zaiMsg {
                     } catch {
                         member.info = {}
                     }
-                    return member
+                    return {
+                        member,
+                        getAvatarUrl: (userId = id) => `https://q1.qlogo.cn/g?b=qq&s=0&nk=${userId}`
+                    }
                 },
                 getChatHistory: async (msg_id, num) => {
                     let source = await api.get_msg(self_id, msg_id)
@@ -191,6 +207,9 @@ export default new class zaiMsg {
             return raw_message
         }
 
+        /** 添加适配器标识 */
+        e.adapter = "shamrock"
+
         return e
     }
 
@@ -205,13 +224,72 @@ export default new class zaiMsg {
                 const msg_id = i.data.id
                 /** id不存在滚犊子... */
                 if (!msg_id) continue
-                source = await api.get_msg(id, msg_id)
-                const message = source.message.map(u => (u.type === "at" ? { type: u.type, qq: Number(u.data.qq) } : { type: u.type, ...u.data }))
+
+                try {
+                    let retryCount = 0
+
+                    while (retryCount < 2) {
+                        source = await api.get_msg(id, msg_id)
+
+                        if (typeof source === "string") {
+                            common.log(id, `获取引用消息内容失败，正在重试：第 ${retryCount} 次`)
+                            retryCount++
+                        } else {
+                            break
+                        }
+                    }
+                    if (typeof source === "string") {
+                        common.log(id, `获取引用消息内容失败，重试次数上限，已终止`)
+                        return { message, source }
+                    }
+                } catch (error) {
+                    logger.error(error)
+                }
+
+                let reply = source.message.map(u => (u.type === "at" ? { type: u.type, qq: Number(u.data.qq) } : { type: u.type, ...u.data }))
+
+                const raw_message = []
+                for (let i of reply) {
+                    switch (i.type) {
+                        case "image":
+                            raw_message.push("[图片]")
+                            break
+                        case "text":
+                            i.texg ? raw_message.push(i.text) : ""
+                            break
+                        case "file":
+                            raw_message.push("[文件]")
+                            break
+                        case "record":
+                            raw_message.push("[语音]")
+                            break
+                        case "video":
+                            raw_message.push("[视频]")
+                            break
+                        case "music":
+                            raw_message.push("[音乐]")
+                            break
+                        case "weather":
+                            raw_message.push("[天气]")
+                            break
+                        case "json":
+                            raw_message.push("[json]")
+                            break
+                        case "at":
+                            raw_message.push(`[@${i?.qq}]`)
+                            break
+                        default:
+                            raw_message.push(JSON.stringify(i))
+                            break
+                    }
+                }
+
                 source = {
                     ...source,
-                    message,
+                    reply,
                     seq: source.message_id,
                     user_id: source.sender.user_id,
+                    raw_message: raw_message.join("").trim()
                 }
             } else {
                 if (i.type === "at") {
