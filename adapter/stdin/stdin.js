@@ -3,7 +3,7 @@ import { createInterface } from "readline"
 import common from "../../model/common.js"
 import pluginsLoader from "../../../../lib/plugins/loader.js"
 
-const uin = "88888"
+const uin = "stdin"
 const name = "标准输入"
 
 /** 自定义标准输入头像 */

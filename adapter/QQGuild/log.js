@@ -83,26 +83,27 @@ export default class qg_log {
             CHANNEL_DELETE: (msg) => {
                 return `[${msg.name}(${msg.id})] 子频道被删除，操作人：${msg.op_user_id}`
             },
-            GUILD_MEMBER_ADD: (msg) => {
+            GUILD_MEMBER_ADD: async (msg) => {
+                await common.sleep(2000)
                 if (msg.user.bot) {
-                    return `[${Bot.lain.guilds[msg.guild_id].name}(${msg.guild_id})] 频道新增机器人：${msg.user.username}(${msg.user.id})，操作人：${msg.op_user_id}`
+                    return `[${Bot.lain.guilds[msg.guild_id]?.name}(${msg.guild_id})] 频道新增机器人：${msg.user.username}(${msg.user.id})，操作人：${msg.op_user_id}`
                 } else {
-                    return `[${Bot.lain.guilds[msg.guild_id].name}(${msg.guild_id})] 新用户加入频道：${msg.user.username}(${msg.user.id})`
+                    return `[${Bot.lain.guilds[msg.guild_id]?.name}(${msg.guild_id})] 新用户加入频道：${msg.user.username}(${msg.user.id})`
                 }
             },
             GUILD_MEMBER_UPDATE: (msg) => {
-                return `[${Bot.lain.guilds[msg.guild_id].name}(${msg.guild_id})] 用户的频道属性发生变化：${msg.user.username}(${msg.user.id})`
+                return `[${Bot.lain.guilds[msg.guild_id]?.name}(${msg.guild_id})] 用户的频道属性发生变化：${msg.user.username}(${msg.user.id})`
             },
             GUILD_MEMBER_REMOVE: (msg) => {
                 if (msg.op_user_id === msg.user.id)
-                    return `[${Bot.lain.guilds[msg.guild_id].name}(${msg.guild_id})] 用户退出频道：${msg.user.username}(${msg.user.id})`
+                    return `[${Bot.lain.guilds[msg.guild_id]?.name}(${msg.guild_id})] 用户退出频道：${msg.user.username}(${msg.user.id})`
                 else
-                    return `[${Bot.lain.guilds[msg.guild_id].name}(${msg.guild_id})] 用户被移除频道：${msg.user.username}(${msg.user.id})`
+                    return `[${Bot.lain.guilds[msg.guild_id]?.name}(${msg.guild_id})] 用户被移除频道：${msg.user.username}(${msg.user.id})`
             },
             MESSAGE_REACTION_ADD: (msg) => {
                 const guild_id = msg.guild_id
                 const channel_id = msg.channel_id
-                const group_name = Bot.lain.guilds[guild_id].name + "-" + Bot.lain.guilds[guild_id].channels[channel_id]
+                const group_name = Bot.lain.guilds[guild_id]?.name + "-" + Bot.lain.guilds[guild_id].channels[channel_id]
                 let logs = `[${group_name}(qg_${guild_id}-${channel_id})] 表情表态：`
                 logs += `\n消息ID：${msg.target.id}\n操作人：${msg.user_id}\n操作类型：添加表情动态\n表情ID：emoji:${msg.emoji.id}`
                 return logs
@@ -110,19 +111,19 @@ export default class qg_log {
             MESSAGE_REACTION_REMOVE: (msg) => {
                 const guild_id = msg.guild_id
                 const channel_id = msg.channel_id
-                const group_name = Bot.lain.guilds[guild_id].name + "-" + Bot.lain.guilds[guild_id].channels[channel_id]
+                const group_name = Bot.lain.guilds[guild_id]?.name + "-" + Bot.lain.guilds[guild_id].channels[channel_id]
                 let logs = `[${group_name}(qg_${guild_id}-${channel_id})] 表情表态：`
                 logs += `\n消息ID：${msg.target.id}\n操作人：${msg.user_id}\n操作类型：取消表情动态\n表情ID：emoji:${msg.emoji.id}`
                 return logs
             },
             MESSAGE_DELETE: async (msg) => {
-                return `[${Bot.lain.guilds[msg.message.guild_id].name}(${msg.message.guild_id})，${await this.recallMsg(msg)}`
+                return `[${Bot.lain.guilds[msg.message.guild_id]?.name}(${msg.message.guild_id})，${await this.recallMsg(msg)}`
             },
             DIRECT_MESSAGE_DELETE: async (msg) => {
-                return `[${Bot.lain.guilds[msg.message.src_guild_id].name}(${msg.message.src_guild_id})，${await this.recallMsg(msg)}`
+                return `[${Bot.lain.guilds[msg.message.src_guild_id]?.name}(${msg.message.src_guild_id})，${await this.recallMsg(msg)}`
             },
             PUBLIC_MESSAGE_DELETE: async (msg) => {
-                return `[${Bot.lain.guilds[msg.message.guild_id].name}(${msg.message.guild_id})，${await this.recallMsg(msg)}`
+                return `[${Bot.lain.guilds[msg.message.guild_id]?.name}(${msg.message.guild_id})，${await this.recallMsg(msg)}`
             }
         }
 

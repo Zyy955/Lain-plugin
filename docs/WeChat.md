@@ -46,7 +46,7 @@ websocket_url = ["ws://127.0.0.1:8080/onebot/v12/ws/"]
 websocket_url = ["ws://localhost:2955/ComWeChat"]
 
 可选：
-如果经常发生连接已关闭，请增加缓冲区大小
+`如果经常发生连接已关闭，请增加缓冲区大小``
 # 反向 WebSocket 的缓冲区大小，单位(Mb)
 websocket_buffer_size = 4
 

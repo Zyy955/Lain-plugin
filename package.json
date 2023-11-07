@@ -1,14 +1,14 @@
 {
   "name": "lain-plugin",
-  "version": "1.3.2",
+  "version": "1.3.3",
   "author": "Lain.",
   "github": "https://github.com/Zyy955/Lain-plugin",
   "gitee": "https://gitee.com/Zyy955/Lain-plugin",
   "type": "module",
   "adapter": {
-    "qg": "0.5.1",
-    "stdin": "0.1.1",
-    "WeChat": "0.2.2",
+    "qg": "0.5.2",
+    "stdin": "0.1.2",
+    "WeChat": "0.2.3",
     "CWeChatRobot": "0.0.8"
   },
   "dependencies": {

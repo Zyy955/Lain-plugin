@@ -1,11 +1,11 @@
 import common from "../../model/common.js"
 import api from "./api.js"
+import SendMsg from "./sendMsg.js"
+import { init } from "../../index.js"
 
 export default new class addBot {
     /** 加载资源 */
     async loadRes(uin) {
-        /** 重新连接后不再加载资源 */
-        if (Bot[uin]?.uin === uin) return
         const bot = Bot.shamrock.get(String(uin))
         /** 构建基本参数 */
         Bot[uin] = {
@@ -93,7 +93,7 @@ export default new class addBot {
             },
             getGroupMemberInfo: async function (group_id, user_id) {
                 /** 被自己坑了 */
-                if (user_id === "88888") user_id = uin
+                if (user_id == "88888") user_id = uin
                 let member = await api.get_group_member_info(uin, group_id, user_id)
                 member.card = member.nickname
                 return member
@@ -118,19 +118,14 @@ export default new class addBot {
                 return await api.set_group_leave(uin, groupID)
             }
         }
-        /** 异步加载好友、群列表 */
-        this.LoadList(uin)
+        /** 加载好友、群列表 */
+        await this.LoadList(uin)
     }
 
     async LoadList(uin) {
-        /** 注册uin */
-        if (!Bot?.adapter) {
-            Bot.adapter = [Bot.uin, uin]
-        } else {
-            Bot.adapter.push(uin)
-            /** 去重防止断连后出现多个重复的id */
-            Bot.adapter = Array.from(new Set(Bot.adapter.map(JSON.stringify))).map(JSON.parse)
-        }
+        Bot.adapter.push(uin)
+        /** 去重防止断连后出现多个重复的id */
+        Bot.adapter = Array.from(new Set(Bot.adapter.map(JSON.stringify))).map(JSON.parse)
 
         /** 获取bot自身信息 */
         const info = await api.get_login_info(uin)
@@ -198,5 +193,8 @@ export default new class addBot {
         })
 
         await common.log(uin, `Shamrock加载资源成功：加载了${Bot[uin].fl.size}个好友，${Bot[uin].gl.size}个群。`)
+
+        /** 重启 */
+        await init("Lain:restart:shamrock")
     }
 }
