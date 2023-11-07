@@ -1,5 +1,6 @@
 import { randomUUID } from "crypto"
 import common from "../../model/common.js"
+import fetch, { fileFromSync, FormData } from "node-fetch";
 
 let api = {
     /**
@@ -501,6 +502,49 @@ let api = {
         return await this.SendApi(id, "clear_msgs", params)
     },
 
+    /**
+     * 上传文件到缓存目录
+     * @param {string} id - 机器人QQ
+     * @param {string} file - 文件本地地址
+     * @return {Promise<{file, md5}>} file为文件在shamrock端的本地路径，可用于发送文件、语音、视频等
+     */
+    async upload_file(id, file) {
+        let formData = new FormData()
+        formData.append('file', fileFromSync(file))
+        let data = await this.httpApi(id, 'upload_file', {}, formData)
+        return data
+    },
+
+    async httpApi(id, action, headers, data, query = "") {
+        if (!Bot.lain.cfg.baseUrl || !Bot.lain.cfg.baseUrl.startsWith('http')) {
+            return common.log(id, "未配置Shamrock主动http端口")
+        }
+        if (!headers) {
+            headers = {}
+        }
+        headers['User-Agent'] = 'Lain-Plugin/1.3.3'
+        let baseUrl = Bot.lain.cfg.baseUrl
+        let token = Bot.lain.cfg.token
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`
+        }
+        const bot = Bot.shamrock.get(String(id))
+        if (!bot) return common.log(id, "不存在此Bot")
+        const echo = randomUUID()
+        let res = await fetch(baseUrl + '/' + action + query, {
+            headers,
+            body: data,
+            method: "post"
+        })
+        if (res.ok) {
+            let result = await res.json()
+            return result.data
+        } else {
+            let result = await res.json()
+            common.log(id, result, "error")
+            return {}
+        }
+    },
 
     async SendApi(id, action, params) {
         const bot = Bot.shamrock.get(String(id))

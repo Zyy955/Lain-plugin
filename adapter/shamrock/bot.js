@@ -2,7 +2,7 @@ import common from "../../model/common.js"
 import api from "./api.js"
 import SendMsg from "./sendMsg.js"
 import { init } from "../../index.js"
-import {message, toRaw} from "./message.js";
+import { message, toRaw } from "./message.js";
 
 export default new class addBot {
     /** 加载资源 */
@@ -79,19 +79,33 @@ export default new class addBot {
                     kickMember: async (qq, reject_add_request = false) => {
                         return await api.set_group_kick(uin, groupID, qq, reject_add_request)
                     },
-                    // shamrock目前只支持从当前往前数，所以msg_id实际未使用
-                    getChatHistory: async (msg_id, num) => {
+                    /**
+                     * shamrock目前只支持从当前往前数，所以msg_id实际未使用
+                     * @param msg_id 当前无用
+                     * @param num 数量
+                     * @param reply 是否展开回复引用的消息(source)（实测数量大的时候耗时且可能出错）
+                     * @return {Promise<Awaited<unknown>[]>}
+                     */
+                    getChatHistory: async (msg_id, num, reply) => {
                         let { messages } = await api.get_group_msg_history(uin, groupID, num)
                         let group = Bot[uin].gl.get(groupID)
                         messages = messages.map(async m => {
                             m.group_name = group?.group_name || groupID
                             m.atme = !!m.message.find(msg => msg.type === "at" && msg.data?.qq == uin)
                             m.raw_message = toRaw(m.message, uin, groupID)
-                            let result = await message(uin, m.message, groupID)
+                            let result = await message(uin, m.message, groupID, reply)
                             m = Object.assign(m, result)
                             return m
                         })
                         return Promise.all(messages)
+                    },
+                    /** 头衔 **/
+                    setTitle: async (qq, title, duration) => {
+                        return await api.set_group_special_title(uin, groupID, qq, title)
+                    },
+                    /** 修改群名片 **/
+                    setCard: async (qq, card) => {
+                        return await api.set_group_card(uin, groupID, qq, card)
                     },
                 }
             },
@@ -103,6 +117,23 @@ export default new class addBot {
                     /** 转发 */
                     makeForwardMsg: async (forwardMsg) => {
                         return await common.makeForwardMsg(forwardMsg)
+                    },
+                    /**
+                     * shamrock目前只支持从当前往前数，所以msg_id实际未使用
+                     * @param msg_id 当前无用
+                     * @param num 数量
+                     * @param reply 是否展开回复引用的消息(source)（实测数量大的时候耗时且可能出错）
+                     * @return {Promise<Awaited<unknown>[]>}
+                     */
+                    getChatHistory: async (msg_id, num, reply) => {
+                        let { messages } = await api.get_history_msg(uin, "private", user_id, null, num)
+                        messages = messages.map(async m => {
+                            m.raw_message = toRaw(m.message, uin)
+                            let result = await message(uin, m.message, null, reply)
+                            m = Object.assign(m, result)
+                            return m
+                        })
+                        return Promise.all(messages)
                     }
                 }
             },
@@ -121,6 +152,23 @@ export default new class addBot {
                     /** 转发 */
                     makeForwardMsg: async (forwardMsg) => {
                         return await common.makeForwardMsg(forwardMsg)
+                    },
+                    /**
+                     * shamrock目前只支持从当前往前数，所以msg_id实际未使用
+                     * @param msg_id 当前无用
+                     * @param num 数量
+                     * @param reply 是否展开回复引用的消息(source)（实测数量大的时候耗时且可能出错）
+                     * @return {Promise<Awaited<unknown>[]>}
+                     */
+                    getChatHistory: async (msg_id, num, reply) => {
+                        let { messages } = await api.get_history_msg(uin, "private", user_id, null, num)
+                        messages = messages.map(async m => {
+                            m.raw_message = toRaw(m.message, uin)
+                            let result = await message(uin, m.message, null, reply)
+                            m = Object.assign(m, result)
+                            return m
+                        })
+                        return Promise.all(messages)
                     }
                 }
             },

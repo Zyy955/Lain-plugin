@@ -1,6 +1,7 @@
 import fs from "fs"
 import { randomUUID } from "crypto"
 import common from "../../model/common.js"
+import api from "./api.js";
 
 export default class SendMsg {
     /** 传入基本配置 */
@@ -59,7 +60,17 @@ export default class SendMsg {
                 case "file":
                     break
                 case "record":
-                    if (i?.url) i.file = i.url
+                    if (Bot.lain.cfg.baseUrl && i.file && !i.file.includes('http')) {
+                        // 本地文件
+                        try {
+                            const { file } = await api.upload_file(this.id, i.file)
+                            i.file = `file://${file}`
+                        } catch (err) {
+                            common.log(this.id, err, "error")
+                        }
+                    } else {
+                        if (i?.url) i.file = i.url
+                    }
                     CQ.push(`[CQ:record,file=${i.file}]`)
                     content.push({
                         type: "record",
@@ -67,6 +78,17 @@ export default class SendMsg {
                     })
                     break
                 case "video":
+                    if (i.file && !i.file.includes("protobuf://") && !i.file.includes("base64://")) {
+                        if (Bot.lain.cfg.baseUrl && i.file && !i.file.includes('http')) {
+                            // 本地文件
+                            try {
+                                const { file } = await api.upload_file(this.id, i.file)
+                                i.file = `file://${file}`
+                            } catch (err) {
+                                common.log(this.id, err, "error")
+                            }
+                        }
+                    }
                     CQ.push(`[CQ:video,file=${i.file}]`)
                     content.push({
                         type: "video",

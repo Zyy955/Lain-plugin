@@ -21,7 +21,11 @@ export default new class zaiMsg {
             e.message = message
             if (source) {
                 e.source = source
-                e.source.message = source.raw_message
+                if (typeof e.source === 'string') {
+                    common.log(user_id, e.source, 'error')
+                } else {
+                    e.source.message = source.raw_message
+                }
             }
         } else if (e.post_type === "notice" && e.sub_type === "poke") {
             e.action = "戳了戳"
@@ -107,14 +111,14 @@ export default new class zaiMsg {
                     }
                 },
                 // shamrock目前只支持从当前往前数，所以msg_id实际未使用
-                getChatHistory: async (msg_id, num) => {
+                getChatHistory: async (msg_id, num, reply) => {
                     try {
                         let { messages } = await api.get_group_msg_history(self_id, group_id, num)
                         messages = messages.map(async m => {
                             m.group_name = group_name
                             m.atme = !!m.message.find(msg => msg.type === "at" && msg.data?.qq == self_id)
                             m.raw_message = toRaw(m.message, self_id, group_id)
-                            let result = await this.message(self_id, m.message, group_id)
+                            let result = await this.message(self_id, m.message, group_id, reply)
                             m = Object.assign(m, result)
                             return m
                         })
@@ -148,8 +152,9 @@ export default new class zaiMsg {
                 },
                 /** 戳一戳 */
                 pokeMember: async (operator_id) => {
-                    const peer_id = group_id
-                    return await (new SendMsg(self_id, isGroup)).message({ type: "touch", data: { id: operator_id } }, peer_id)
+                    return await api.group_touch(self_id, group_id, operator_id)
+                    // const peer_id = group_id
+                    // return await (new SendMsg(self_id, isGroup)).message({ type: "touch", data: { id: operator_id } }, peer_id)
                 },
                 /** 禁言 */
                 muteMember: async (group_id, user_id, time) => {
@@ -180,7 +185,15 @@ export default new class zaiMsg {
                 /** 踢 */
                 kickMember: async (qq, reject_add_request = false) => {
                     return await api.set_group_kick(self_id, group_id, qq, reject_add_request)
-                }
+                },
+                /** 头衔 **/
+                setTitle: async (qq, title, duration) => {
+                    return await api.set_group_special_title(self_id, group_id, qq, title)
+                },
+                /** 修改群名片 **/
+                setCard: async (qq, card) => {
+                    return await api.set_group_card(self_id, group_id, qq, card)
+                },
             }
         } else {
             e.friend = {
@@ -194,12 +207,12 @@ export default new class zaiMsg {
                 makeForwardMsg: async (forwardMsg) => {
                     return await common.makeForwardMsg(forwardMsg)
                 },
-                getChatHistory: async (msg_id, num) => {
+                getChatHistory: async (msg_id, num, reply = true) => {
                     try {
-                        let messages = await api.get_history_msg(self_id, message_type, user_id, null, num)
+                        let messages = await api.get_history_msg(self_id, "private", user_id, null, num)
                         messages = messages.map(async m => {
                             m.raw_message = toRaw(m.message, self_id, group_id)
-                            let result = await this.message(self_id, m.message, group_id)
+                            let result = await this.message(self_id, m.message, null, reply)
                             m = Object.assign(m, result)
                             return m
                         })
@@ -239,22 +252,28 @@ export default new class zaiMsg {
     }
 
 
-    async message(id, msg, group_id) {
-        return await message(id, msg, group_id)
+    async message(id, msg, group_id, reply = true) {
+        return await message(id, msg, group_id, reply)
     }
 }
 
-/** 处理云崽的message */
-export async function message(id, msg, group_id) {
+/**
+ * 处理云崽的message
+ * @param id
+ * @param msg
+ * @param group_id
+ * @param reply 是否处理引用消息
+ * @return {Promise<{source: (*&{user_id, raw_message: string, reply: *, seq}), message: *[]}|{source: string, message: *[]}>}
+ */
+export async function message(id, msg, group_id, reply = true) {
     const message = []
     let source
     for (const i of msg) {
-        if (i.type === "reply") {
+        if (i.type === "reply" && reply) {
             /** 引用消息的id */
             const msg_id = i.data.id
             /** id不存在滚犊子... */
             if (!msg_id) continue
-
             try {
                 let retryCount = 0
 
@@ -277,7 +296,6 @@ export async function message(id, msg, group_id) {
             }
 
             let reply = source.message.map(u => (u.type === "at" ? { type: u.type, qq: Number(u.data.qq) } : { type: u.type, ...u.data }))
-
 
             let raw_message = toRaw(reply, id, group_id)
             source = {

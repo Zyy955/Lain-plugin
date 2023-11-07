@@ -265,6 +265,30 @@ export function supportGuoba() {
                         options: channels
                     }
                 },
+                {
+                    component: "Divider",
+                    label: "Shamrock设置"
+                },
+                {
+                    field: "baseUrl",
+                    label: "主动http端口",
+                    bottomHelpMessage: "Shamrock主动http端口，例如http://localhost:5700。若填写将通过此端口进行文件上传等被动ws不支持的操作。未开启端口不要填写",
+                    component: "Input",
+                    required: false,
+                    componentProps: {
+                        placeholder: "请输入shamrock主动http端口",
+                    },
+                },
+                {
+                    field: "token",
+                    label: "鉴权token",
+                    bottomHelpMessage: "Shamrock鉴权token，如果开放公网强烈建议配置",
+                    component: "InputPassword",
+                    required: false,
+                    componentProps: {
+                        placeholder: "请输入shamrock鉴权token",
+                    },
+                },
             ],
             // 获取配置数据方法（用于前端填充显示数据）
             getConfigData() {
