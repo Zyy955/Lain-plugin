@@ -10,14 +10,12 @@ export default new class loader {
       Bot[e.self_id].stat.recv_msg_cnt = await redis.get(`lain:${e.self_id}:sendMsg:total`)
     } catch (error) { }
 
-    Object.defineProperty(e, 'bot', {
-      value: Bot[e.self_id]
-    })
+    if (!e?.bot) Object.defineProperty(e, 'bot', { value: Bot[e.self_id] })
 
     /** 检查频道消息 */
     if (e.adapter === "shamrock" && this.checkGuildMsg(e)) return
     /** 检查黑白名单 */
-    if (e.adapter === "shamrock" && !this.checkBlack(e)) return
+    if (e.adapter !== "QQGuild" && !this.checkBlack(e)) return
 
     /** 冷却 */
     if (!this.checkLimit(e)) return

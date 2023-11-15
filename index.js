@@ -3,6 +3,7 @@ import pm2 from "pm2"
 import "./model/config.js"
 import crypto from "crypto"
 import "./adapter/stdin/stdin.js"
+import "./adapter/QQBot/index.js"
 import yaml from "./model/yaml.js"
 import { createRequire } from 'module'
 import { execSync } from "child_process"
