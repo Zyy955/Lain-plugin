@@ -36,7 +36,7 @@ export default new class message {
             }
 
             e.member = member
-            e.group_name = group_id
+            e.group_name = e.group_id
 
             e.group = {
                 pickMember: (id) => {
