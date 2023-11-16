@@ -105,7 +105,7 @@ export class Lain extends plugin {
     async QQBBot(e) {
         const msg = async (e) => {
             const cmd = e.msg.replace(/^#QQ(群|群机器人|机器人)设置/gi, "").replace(/：/g, ":").trim().split(':')
-            if (cmd.length !== 5) return "格式错误..."
+            if (cmd.length !== 6) return "格式错误..."
             let bot
             const cfg = new yaml(_path + "/QQBot.yaml")
             /** 重复的appID，删除 */
@@ -113,7 +113,8 @@ export class Lain extends plugin {
                 cfg.del(cmd[2])
                 return `Bot：${cmd[2]} 删除成功...重启后生效...`
             } else {
-                bot = { appid: cmd[2], token: cmd[3], sandbox: cmd[0] === "1", removeAt: cmd[1] === "1", secret: cmd[4] }
+                // 沙盒:私域:移除at:appID:appToken:secret 是=1 否=0
+                bot = { appid: cmd[3], token: cmd[4], sandbox: cmd[0] === "1", allMsg: cmd[1] === "1", removeAt: cmd[2] === "1", secret: cmd[5] }
             }
 
             /** 保存新配置 */

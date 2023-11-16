@@ -14,7 +14,7 @@
 
 添加机器人(删除机器人同理)：
 ```
-#QQ群设置 沙盒:移除at:appID:appToken:secret 是=1 否=0
+#QQ群设置 沙盒:私域:移除at:appID:appToken:secret 是=1 否=0
 ```
 
 查看机器人：
@@ -28,6 +28,8 @@
 
 是否沙盒：`是`
 
+是否私域：`是`
+
 移除at：`是`
 
 开发者ID：`123456789`
@@ -39,12 +41,12 @@ secret：`abcdefghijklmnopqrstuvwxyz`
 
 添加机器人：
 ```
-#QQ群设置 1:1:123456789:abcdefghijklmnopqrstuvwxyz123456:abcdefghijklmnopqrstuvwxyz
+#QQ群设置 1:1:1:123456789:abcdefghijklmnopqrstuvwxyz123456:abcdefghijklmnopqrstuvwxyz
 ```
 
 删除机器人：
 ```
-#QQ群设置 1:1:123456789:abcdefghijklmnopqrstuvwxyz123456:abcdefghijklmnopqrstuvwxyz
+#QQ群设置 1:1:1:123456789:abcdefghijklmnopqrstuvwxyz123456:abcdefghijklmnopqrstuvwxyz
 ```
 
 </details>
