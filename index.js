@@ -109,19 +109,19 @@ export class Lain extends plugin {
             let bot
             const cfg = new yaml(_path + "/QQBot.yaml")
             /** 重复的appID，删除 */
-            if (cfg.hasIn(cmd[2])) {
-                cfg.del(cmd[2])
-                return `Bot：${cmd[2]} 删除成功...重启后生效...`
+            if (cfg.hasIn(cmd[3])) {
+                cfg.del(cmd[3])
+                return `QQBot：${cmd[3]} 删除成功...重启后生效...`
             } else {
                 // 沙盒:私域:移除at:appID:appToken:secret 是=1 否=0
                 bot = { appid: cmd[3], token: cmd[4], sandbox: cmd[0] === "1", allMsg: cmd[1] === "1", removeAt: cmd[2] === "1", secret: cmd[5] }
             }
 
             /** 保存新配置 */
-            cfg.addIn(cmd[2], bot)
+            cfg.addIn(cmd[3], bot)
             try {
                 createAndStartBot(bot)
-                return `Bot：${cmd[2]} 已连接...`
+                return `QQBot：${cmd[3]} 已连接...`
             } catch (err) {
                 return err
             }

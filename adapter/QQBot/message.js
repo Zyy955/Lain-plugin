@@ -146,7 +146,9 @@ export default new class message {
     get_image(i) {
         let filePath
         const folderPath = process.cwd() + `/plugins/Lain-plugin/resources/image`
-        i?.url ? i.file = i.url : ""
+        if (i?.url && i.url.includes("gchat.qpic.cn") && !i.url.startsWith("https://")) {
+            i.file = "https://" + i.url
+        }
         // 检查是否是Buffer类型
         if (i.file?.type === "Buffer") {
             filePath = path.join(folderPath, `${Date.now()}.jpg`)
