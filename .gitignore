@@ -1,3 +1,5 @@
 node_modules/
 config/config.yaml
 config/bot.yaml
+config/QQBot.yaml
+resources/image

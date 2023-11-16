@@ -225,11 +225,7 @@ class WeChat {
             }
         }
 
-        if (Bot.lain.cfg.YenaiState == 1 || Bot.lain.cfg.YenaiState == 3) {
-            Bot.adapter.push(this.id)
-            /** 去重防止断连后出现多个重复的id */
-            Bot.adapter = Array.from(new Set(Bot.adapter.map(JSON.stringify))).map(JSON.parse)
-        }
+        if (!Bot.adapter?.[this.id]) Bot.adapter.push(this.id)
 
         await common.log(this.id, "状态更新：ComWeChat已连接，正在加载资源中...")
         await common.sleep(1000)

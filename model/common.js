@@ -5,8 +5,7 @@ import chalk from "chalk"
 if (!Bot?.adapter) {
     const uin = Bot.uin
     if (uin == 88888) {
-        Bot.adapter = ["stdin"]
-        Bot.uin = "stdin"
+        Bot.adapter = []
     } else {
         Bot.adapter = [uin]
     }
@@ -140,4 +139,23 @@ export async function makeForwardMsg(data, node = false, e = {}) {
     return message
 }
 
-export default { sleep, log, array, makeForwardMsg }
+/** 传入路径 返回字符串格式的base64 */
+export async function base64(path) {
+    let file = path
+    try {
+        if (!fs.existsSync(file)) {
+            // 尝试去掉file://
+            file = file.replace(/^file:\/\//, "")
+            // 再次检查文件是否存在
+            if (!fs.existsSync(file)) {
+                file = path.replace(/^file:\/\/\//, "")
+                if (!fs.existsSync(file)) return
+            }
+        }
+        return fs.readFileSync(file, { encoding: "base64" })
+    } catch (err) {
+        return
+    }
+}
+
+export default { sleep, log, array, makeForwardMsg, base64 }

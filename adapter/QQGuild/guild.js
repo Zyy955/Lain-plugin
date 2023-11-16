@@ -127,11 +127,7 @@ export default class guild {
             }
         }
 
-        if (Bot.lain.cfg.YenaiState == 1 || Bot.lain.cfg.YenaiState == 2) {
-            Bot.adapter.push(this.id)
-            /** 去重防止断连后出现多个重复的id */
-            Bot.adapter = Array.from(new Set(Bot.adapter.map(JSON.stringify))).map(JSON.parse)
-        }
+        if (!Bot.adapter?.[this.id]) Bot.adapter.push(this.id)
     }
 
     /** 获取一些基本信息 */

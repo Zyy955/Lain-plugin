@@ -1,16 +1,19 @@
 # HTTP端口
 port: 2955
 
-# 椰奶状态显示 0:全部不显示 1:显示全部 2:单显示频道 3:单显示PC微信 4:单显示网页微信 5:单显示shamrock 6:单显示标准输入
-# 修改后需要重启才可以重新加载资源
-YenaiState: 1
-
 #-------- 以下是Shamrock配置 --------
 # shamrock主动http端口，例如http://localhost:5700。若填写将通过此端口进行文件上传等被动ws不支持的操作
 baseUrl:
 
 # 鉴权token，如果开放公网强烈建议配置
 token:
+
+#-------- 以下是QQBot配置 --------
+# 图片Api的IP或者域名
+QQBotImgIP: 127.0.0.1
+
+# 图片Api的token
+QQBotImgToken: "test"
 
 #-------- 以下是标准输入配置 --------
 # 标准输入的昵称

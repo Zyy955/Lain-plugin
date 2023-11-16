@@ -1,6 +1,7 @@
 import fs from "fs"
 import Yaml from "yaml"
 import chalk from "chalk"
+import crypto from "crypto"
 import chokidar from "chokidar"
 import common from "../model/common.js"
 import guild from "../adapter/QQGuild/guild.js"
@@ -8,36 +9,29 @@ import WebSocket from "../adapter/WebSocket.js"
 
 const _path = process.cwd() + "/plugins/Lain-plugin/config"
 
+const configItems = [
+    { key: 'port', value: '2955', comment: '# 端口' },
+    { key: 'path', value: '"/ComWeChat"', comment: '# 路径' },
+    { key: 'autoFriend', value: '0', comment: '# 是否自动同意加好友 1-同意 0-不处理' },
+    { key: 'name', value: '""', comment: '# 自定义椰奶状态名称' },
+    { key: 'stdin_nickname', value: '"标准输入"', comment: '# 标准输入的昵称' },
+    { key: 'baseUrl', value: '', comment: '# shamrock主动http端口，例如http://localhost:5700。若填写将通过此端口进行文件上传等被动ws不支持的操作' },
+    { key: 'token', value: '', comment: '# 鉴权token，如果开放公网强烈建议配置' },
+    { key: 'QQBotImgIP', value: '127.0.0.1', comment: '# 图片Api的IP或者域名' },
+    { key: 'QQBotImgToken', value: crypto.createHash("sha256").update(crypto.randomBytes(32)).digest("hex"), comment: '# 图片Api的token 随机生成 无特殊需求不建议更改' }
+]
+
 /** 检查配置文件是否存在 */
 if (!fs.existsSync(_path + "/config.yaml")) {
     fs.copyFileSync(_path + "/defSet/config.yaml", _path + "/config.yaml")
 } else {
     /** 兼容旧配置文件 */
     let cfg = fs.readFileSync(_path + "/config.yaml", "utf8")
-    if (!cfg.match(RegExp("port:"))) {
-        cfg = cfg + `\n# 端口\nport: 2955`
-    }
-    if (!cfg.match(RegExp("path:"))) {
-        cfg = cfg + `\n# 路径\npath: "/ComWeChat"`
-    }
-    if (!cfg.match(RegExp("autoFriend:"))) {
-        cfg = cfg + `\n# 是否自动同意加好友 1-同意 0-不处理\nautoFriend: 0`
-    }
-    if (!cfg.match(RegExp("name:"))) {
-        cfg = cfg + `\n# 自定义椰奶状态名称\nname: ""`
-    }
-    if (!cfg.match(RegExp("stdin_nickname:"))) {
-        cfg = cfg + `\n\n# 标准输入的昵称\nstdin_nickname: "标准输入"`
-    }
-    if (!cfg.match(RegExp("YenaiState:"))) {
-        cfg = cfg + `\n\n# 椰奶状态显示 0:只显示触发适配器 1:显示全部 2:单显示频道 3:单显示PC微信 4:单显示网页微信 5:单显示shamrock 6:单显示标准输入\n# 修改后需要重启才可以重新加载资源\nYenaiState: 1`
-    }
-    if (!cfg.match(RegExp("baseUrl:"))) {
-        cfg = cfg + `\n\n# shamrock主动http端口，例如http://localhost:5700。若填写将通过此端口进行文件上传等被动ws不支持的操作\nbaseUrl:`
-    }
-    if (!cfg.match(RegExp("token:"))) {
-        cfg = cfg + `\n\n# 鉴权token，如果开放公网强烈建议配置\ntoken:`
-    }
+    configItems.forEach(item => {
+        if (!cfg.match(RegExp(`${item.key}:`))) {
+            cfg += `\n${item.comment}\n${item.key}: ${item.value}`
+        }
+    })
     fs.writeFileSync(_path + "/config.yaml", cfg, "utf8")
 }
 
@@ -45,6 +39,12 @@ if (!fs.existsSync(_path + "/config.yaml")) {
 if (!fs.existsSync(_path + "/bot.yaml")) {
     fs.writeFileSync(_path + "/bot.yaml", `# 机器人配置 请不要删除default！这是兼容旧配置的！\ndefault: {}`, "utf8")
 }
+
+/** 生成默认配置文件 */
+if (!fs.existsSync(_path + "/QQBot.yaml")) {
+    fs.writeFileSync(_path + "/QQBot.yaml", `{}`)
+}
+if (!fs.existsSync(_path + `/../resources/image`)) fs.mkdirSync(_path + `/../resources/image`)
 
 const cfg = Yaml.parse(fs.readFileSync(_path + "/config.yaml", "utf8"))
 const YZ = JSON.parse(fs.readFileSync("./package.json", "utf-8"))

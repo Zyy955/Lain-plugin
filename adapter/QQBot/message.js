@@ -1,11 +1,28 @@
+import fs from "fs"
+import path from "path"
 import common from "../../model/common.js"
 
 export default new class message {
     /** 转换格式给云崽 */
     async msg(e, isGroup) {
+        const _reply = e.reply
         /** 回复 */
-        const reply = e.reply
+        const reply = (msg, quote) => {
+            try {
+                if (typeof msg === "object" && msg?.type == "image") {
+                    msg = this.get_image(msg)
+                }
+                else if (Array.isArray(msg)) for (let i in msg) {
+                    if (msg[i].type === "image") msg[i] = this.get_image(msg[i])
+                }
+            } catch (error) {
+                console.error("🚀 ~ file: message.js:19 ~ message ~ reply ~ error:", error)
+            }
 
+            _reply.call(e, msg, quote)
+        }
+
+        e.reply = reply
         /** 快速撤回 */
         e.recall = async () => { return }
 
@@ -122,5 +139,64 @@ export default new class message {
         e.adapter = "QQBot"
 
         return e
+    }
+
+
+    /** 统一图片格式 */
+    get_image(i) {
+        let filePath
+        const folderPath = process.cwd() + `/plugins/Lain-plugin/resources/image`
+        i?.url ? i.file = i.url : ""
+        // 检查是否是Buffer类型
+        if (i.file?.type === "Buffer") {
+            filePath = path.join(folderPath, `${Date.now()}.jpg`)
+            fs.writeFileSync(filePath, Buffer.from(i.file.data))
+        }
+        // 检查是否是Uint8Array类型
+        else if (i.file instanceof Uint8Array) {
+            filePath = path.join(folderPath, `${Date.now()}.jpg`)
+            fs.writeFileSync(filePath, Buffer.from(i.file))
+        }
+        // 检查是否是ReadStream类型
+        else if (i.file instanceof fs.ReadStream) {
+            filePath = path.join(folderPath, path.basename(i.file.path))
+            fs.copyFileSync(i.file.path, filePath)
+        }
+        // 检查是否是base64格式的字符串
+        else if (typeof i.file === "string" && /^base64:\/\//.test(i.file)) {
+            const base64Data = i.file.replace(/^base64:\/\//, "")
+            filePath = path.join(folderPath, `${Date.now()}.jpg`)
+            fs.writeFileSync(filePath, base64Data, 'base64')
+        }
+        // 如果是url，则直接返回url
+        else if (typeof i.file === "string" && /^http(s)?:\/\//.test(i.file)) {
+            return { type: "image", file: i.file }
+        }
+        // 检查是否是字符串类型，且不是url
+        else if (typeof i.file === "string") {
+            const localPath = i.file.replace(/^file:\/\//, "")
+            if (fs.existsSync(localPath)) {
+                filePath = path.join(folderPath, path.basename(localPath))
+                fs.copyFileSync(localPath, filePath)
+            } else {
+                common.log(this.id, i, "error")
+                return { type: "text", text: "本地文件不存在..." }
+            }
+        }
+        // 留个容错
+        else {
+            common.log(this.id, i, "error")
+            return { type: "text", text: "未知格式...请寻找作者适配..." }
+        }
+
+        // 返回名称
+        if (fs.existsSync(filePath)) {
+            const { port, QQBotImgIP, QQBotImgToken } = Bot.lain.cfg
+            const url = `http://${QQBotImgIP}:${port}/api/image?token=${QQBotImgToken}&name=${path.basename(filePath)}`
+            return { type: "image", file: url }
+        } else {
+            common.log(this.id, i, "error")
+            return { type: "text", text: "文件保存失败..." }
+        }
     }
 }

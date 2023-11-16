@@ -17,11 +17,12 @@ Bot[uin] = {
     gl: new Map(),
     gml: new Map(),
     id: uin,
+    uin: uin,
     name: Bot.lain.cfg.stdin_nickname,
     nickname: Bot.lain.cfg.stdin_nickname,
     avatar: `../../../../../plugins/Lain-plugin/resources/${avatar}`,
-    stat: { start_time: Date.now() / 1000, recv_msg_cnt: 1 },
-    version: { id: "stdin", name: "标准输入", version: Bot.lain.adapter.stdin },
+    stat: { start_time: Date.now() / 1000 },
+    version: { id: "stdin", name: "标准输入" },
     /** 转发 */
     makeForwardMsg: async (forwardMsg) => {
         return await makeForwardMsg(forwardMsg)
@@ -40,10 +41,6 @@ Bot[uin] = {
 }
 
 Bot.adapter.unshift(uin)
-
-if (Bot.lain.cfg.YenaiState == 1 || Bot.lain.cfg.YenaiState == 6) {
-    Bot[uin].uin = uin
-}
 
 /** 监听控制台输入 */
 const rl = createInterface({

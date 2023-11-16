@@ -196,11 +196,7 @@ export default new class addBot {
     }
 
     async LoadList(uin) {
-        if (Bot.lain.cfg.YenaiState == 1 || Bot.lain.cfg.YenaiState == 5) {
-            Bot.adapter.push(uin)
-            /** 去重防止断连后出现多个重复的id */
-            Bot.adapter = Array.from(new Set(Bot.adapter.map(JSON.stringify))).map(JSON.parse)
-        }
+        if (!Bot.adapter?.[Number(uin)]) Bot.adapter.push(Number(uin))
 
         /** 获取bot自身信息 */
         const info = await api.get_login_info(uin)
@@ -276,7 +272,7 @@ export default new class addBot {
                     let skey = match[1]
                     let n = 5381
                     for (let e = skey || '', r = 0, o = e.length; r < o; ++r) {
-                          n += (n << 5) + e.charAt(r).charCodeAt(0)
+                        n += (n << 5) + e.charAt(r).charCodeAt(0)
                     }
                     Bot[uin].bkn = 2147483647 & n
                 }
@@ -295,7 +291,7 @@ export default new class addBot {
                     try {
                         // 适配椰奶逆天的ck转JSON方法
                         ck = ck.trim().replace(/\w+=;/g, '').replace(/\w+=$/g, '')
-                    } catch (err) {}
+                    } catch (err) { }
                 }
                 Bot[uin].cookies[domain] = ck
             }).catch(error => {

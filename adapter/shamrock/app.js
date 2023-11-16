@@ -15,17 +15,23 @@ class Shamrock {
             return bot.close()
         }
 
+        const MapBot = Bot.shamrock.get(uin)
+        if (MapBot && MapBot.state) {
+            await common.log("shamrock", "重复的链接", "error")
+            return bot.close()
+        }
+
         /** 保存当前bot */
         Bot.shamrock.set(uin, {
             id: uin,
             socket: bot,
+            state: false,
             "qq-ver": request.headers["x-qq-version"],
             "user-agent": request.headers["user-agent"]
         })
 
         bot.on("message", async (data) => {
             data = JSON.parse(data)
-            logger.debug(`shamrock(${uin}):`, data)
             /** 带echo事件另外保存 */
             if (data?.echo) {
                 return Bot.lain.on.set(data.echo, data)
@@ -33,6 +39,8 @@ class Shamrock {
             const event = {
                 /** 产生连接 */
                 lifecycle: async () => {
+                    if (Bot.shamrock.get(uin)?.state) return
+                    Bot.shamrock.set(uin, { ...Bot.shamrock.get(uin), state: true })
                     await common.log(uin, `建立连接成功，正在加载资源：${request.headers["user-agent"]}`)
                     return await addBot.loadRes(uin)
                 },
@@ -69,6 +77,7 @@ class Shamrock {
         })
 
         bot.on("close", async () => {
+            Bot.shamrock.set(uin, { ...Bot.shamrock.get(uin), state: false })
             await common.log(uin, "连接已关闭", "error")
             // Bot.shamrock.delete(uin)
         })
