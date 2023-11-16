@@ -42,7 +42,7 @@ if (!fs.existsSync(_path + "/bot.yaml")) {
 
 /** 生成默认配置文件 */
 if (!fs.existsSync(_path + "/QQBot.yaml")) {
-    fs.writeFileSync(_path + "/QQBot.yaml", `{}`)
+    fs.writeFileSync(_path + "/QQBot.yaml", `ndefault: {}`, "utf8")
 }
 if (!fs.existsSync(_path + `/../resources/image`)) fs.mkdirSync(_path + `/../resources/image`)
 

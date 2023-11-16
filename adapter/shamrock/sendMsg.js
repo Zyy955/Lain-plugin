@@ -152,6 +152,7 @@ export default class SendMsg {
     /** 统一图片格式 */
     async get_image(i) {
         let file
+        i?.url ? i.file = i.url : ""
         /** 特殊格式？... */
         if (i.file?.type === "Buffer") {
             file = `base64://${Buffer.from(i.file.data).toString("base64")}`
