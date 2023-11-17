@@ -14,11 +14,11 @@
   "dependencies": {
     "qq-guild-bot": "^2.9.5",
     "qrcode": "^1.5.3",
-    "axios": "^1.6.0",
+    "axios": "^1.6.2",
     "sharp": "^0.32.6",
-    "ws": "^8.13.0",
-    "file-type": "^18.5.0",
+    "ws": "^8.14.2",
+    "file-type": "^18.7.0",
     "express": "^4.18.2",
-    "ts-qqbot": "^0.0.10-7"
+    "qq-group-bot": "^0.0.6"
   }
 }

@@ -44,7 +44,7 @@ export default class WebSocket {
         })
 
         /** QQBot图片Api */
-        app.get("/api/image", (req, res) => {
+        app.get("/api/QQBot", (req, res) => {
             const { token, name } = req.query
             /** 检查令牌有效性 */
             if (token !== Bot.lain.cfg.QQBotImgToken) return res.status(401).send("令牌无效")

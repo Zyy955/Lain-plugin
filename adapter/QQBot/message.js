@@ -146,9 +146,7 @@ export default new class message {
     get_image(i) {
         let filePath
         const folderPath = process.cwd() + `/plugins/Lain-plugin/resources/image`
-        if (i?.url && i.url.includes("gchat.qpic.cn") && !i.url.startsWith("https://")) {
-            i.file = "https://" + i.url
-        }
+        if (i?.url) i.url.includes("gchat.qpic.cn") && !i.url.startsWith("https://") ? i.file = "https://" + i.url : i.file = i.url
         // 检查是否是Buffer类型
         if (i.file?.type === "Buffer") {
             filePath = path.join(folderPath, `${Date.now()}.jpg`)
@@ -161,7 +159,7 @@ export default new class message {
         }
         // 检查是否是ReadStream类型
         else if (i.file instanceof fs.ReadStream) {
-            filePath = path.join(folderPath, path.basename(i.file.path))
+            filePath = path.join(folderPath, `${Date.now()}${path.extname(i.file.path)}`)
             fs.copyFileSync(i.file.path, filePath)
         }
         // 检查是否是base64格式的字符串
@@ -178,7 +176,7 @@ export default new class message {
         else if (typeof i.file === "string") {
             const localPath = i.file.replace(/^file:\/\//, "")
             if (fs.existsSync(localPath)) {
-                filePath = path.join(folderPath, path.basename(localPath))
+                filePath = path.join(folderPath, `${Date.now()}${path.extname(localPath)}`)
                 fs.copyFileSync(localPath, filePath)
             } else {
                 common.log(this.id, i, "error")
@@ -194,7 +192,7 @@ export default new class message {
         // 返回名称
         if (fs.existsSync(filePath)) {
             const { port, QQBotImgIP, QQBotImgToken } = Bot.lain.cfg
-            const url = `http://${QQBotImgIP}:${port}/api/image?token=${QQBotImgToken}&name=${path.basename(filePath)}`
+            const url = `http://${QQBotImgIP}:${port}/api/QQBot?token=${QQBotImgToken}&name=${path.basename(filePath)}`
             return { type: "image", file: url }
         } else {
             common.log(this.id, i, "error")

@@ -120,7 +120,7 @@ export class Lain extends plugin {
             /** 保存新配置 */
             cfg.addIn(cmd[3], bot)
             try {
-                createAndStartBot(bot)
+                await createAndStartBot(bot)
                 return `QQBot：${cmd[3]} 已连接...`
             } catch (err) {
                 return err
