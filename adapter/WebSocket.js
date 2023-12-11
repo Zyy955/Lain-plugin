@@ -18,6 +18,8 @@ export default class WebSocket {
     Bot.shamrock = new Map()
     /** 保存监听器返回 */
     Bot.lain.on = new Map()
+    /** 微信登录 */
+    Bot.lain.loginMap = new Map()
     /** 创建Express应用程序 */
     const app = express()
     /** 创建HTTP服务器 */
