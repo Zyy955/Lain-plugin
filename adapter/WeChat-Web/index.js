@@ -19,8 +19,15 @@ export default class StartWeChat4u {
     } catch (error) {
       return '未安装 WeChat4u 依赖，请执行pnpm i'
     }
-    this.bot = new WeChat4u(this.config || '')
-    this.bot.restart()
+
+    if (this.config) {
+      this.bot = new WeChat4u(JSON.parse(fs.readFileSync(`./plugins/Lain-plugin/config/${this.id}.json`)))
+      this.bot.restart()
+    } else {
+      this.bot = new WeChat4u()
+      this.bot.start()
+    }
+
     /** uuid事件，参数为uuid，根据uuid生成二维码 */
     this.bot.on('uuid', async uuid => {
       const url = `https://login.weixin.qq.com/qrcode/${uuid}`
@@ -123,10 +130,9 @@ export default class StartWeChat4u {
     const nickname = msg.Content.split(':')[0]
     // raw_message: toString,
 
-
     /** 发送用户，回复消息用 */
     const from = msg.FromUserName
-
+    e.sendUserId = from
     /**
      * 根据官方文档的说法
      * Msg.ToUserName = 接收用户
@@ -256,19 +262,16 @@ export default class StartWeChat4u {
 
     /** 兼容message不存在的情况 */
     if (message) e.message = message
+    return e
   }
 
   /** 处理回复消息格式、回复日志 */
-  async reply (id, msg, reply) {
-    /** 用户昵称 */
-    // const nickname = msg.Content.split(':')[0]
-    /** 发送用户，回复消息用 */
-    const sendUser = msg.FromUserName
+  async reply (e, msg, reply) {
     const message = await this.message(msg)
 
     message.forEach(async i => {
       try {
-        const res = await this.bot.sendMsg(i, sendUser)
+        const res = await this.bot.sendMsg(i, e.sendUserId)
         return {
           seq: res.MsgID,
           rand: 1,
@@ -276,7 +279,7 @@ export default class StartWeChat4u {
           message_id: res.MsgID
         }
       } catch (err) {
-        return await this.sendMsg(id, `发送消息失败：${err?.tips || err}`, sendUser)
+        return await this.sendMsg(e, `发送消息失败：${err?.tips || err}`, e.sendUserId)
       }
     })
 
@@ -313,6 +316,7 @@ export default class StartWeChat4u {
           break
       }
     }
+    return message
   }
 
   /** 统一文件格式 */
