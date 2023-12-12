@@ -10,8 +10,8 @@
     "ComWeChat": "0.2.3",
     "CWeChatRobot": "0.0.8",
     "stdin": "0.1.2",
-    "QQBot": "0.0.1",
-    "WeXin": "0.0.2"
+    "QQBot": "0.0.2",
+    "WeXin": "0.0.3"
   },
   "dependencies": {
     "qq-guild-bot": "^2.9.5",

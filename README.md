@@ -49,6 +49,7 @@ pnpm config set sharp_binary_host "https://npmmirror.com/mirrors/sharp" && pnpm 
 - [PC微信](./docs/WeChat.md)
 - [Shamrock](./docs/Shamrock.md)
 - [QQBot](./docs/QQBot.md)
+- [网页版微信](./docs/WeXin.md)
 
 ## 4.设置主人
 
@@ -71,13 +72,14 @@ pnpm config set sharp_binary_host "https://npmmirror.com/mirrors/sharp" && pnpm 
 - Shamrock：`shamrock`
 - PC微信：`WeChat`
 - QQBot：`QQBot`
+- 网页版微信：`WeXin`
 
 ## 适配进度
 - [√] 标准输入
 - [√] 跳过登录QQ
 - [√] QQ频道适配器
 - [√] PC微信适配器
-- [ ] 网页版微信适配器
+- [√] 网页版微信适配器
 - [√] `shamrock适配器`
 - [√] QQBot适配器
 
@@ -98,6 +100,6 @@ pnpm config set sharp_binary_host "https://npmmirror.com/mirrors/sharp" && pnpm 
 - [Miao-Yunzai](https://github.com/yoimiya-kokomi/Miao-Yunzai)
 - [索引库](https://github.com/yhArcadia/Yunzai-Bot-plugins-index)
 - [OpenShamrock](https://github.com/whitechi73/OpenShamrock)
-- [ComWeChat：](https://github.com/JustUndertaker/ComWeChatBotClient)
+- [ComWeChat](https://github.com/JustUndertaker/ComWeChatBotClient)
 - [wechat4u](https://github.com/nodeWechat/wechat4u/blob/master/run-core.js)
 - [qq-group-bot](https://github.com/lc-cn/qq-group-bot)
