@@ -11,7 +11,7 @@ export class WebWcChat extends plugin {
       priority: 1,
       rule: [
         {
-          reg: '^#微信登录$',
+          reg: '^#微信登(录|陆)$',
           fnc: 'login',
           permission: 'master'
         },

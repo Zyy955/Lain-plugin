@@ -52,7 +52,7 @@ export default class StartWeChat4u {
       Bot[this.id] = {
         ...this.bot,
         sdk: this.bot,
-        stop: this.stop(),
+        stop: this.stop,
         bkn: 0,
         adapter: 'WeXin',
         uin: this.id,
@@ -63,7 +63,7 @@ export default class StartWeChat4u {
         gml: new Map(),
         guilds: new Map(),
         nickname: this.name,
-        avatar: this.bot.CONF.origin + this.bot.user.HeadImgUrl,
+        avatar: process.cwd() + `/temp/WeXin/${this.id}.jpg`,
         stat: { start_time: Date.now() / 1000, recv_msg_cnt: 0 },
         apk: Bot.lain.adapter.WeXin.apk,
         version: Bot.lain.adapter.WeXin.version,
@@ -78,25 +78,37 @@ export default class StartWeChat4u {
       }
       /** 保存id到adapter */
       if (!Bot.adapter.includes(String(this.id))) Bot.adapter.push(String(this.id))
+    })
 
-      /** 接收消息 */
-      this.bot.on('message', async msg => {
-        msg = await this.msg(msg)
-        if (!msg) return
-        Bot.emit('message', msg)
-      })
+    /** 登录用户头像事件，手机扫描后可以得到登录用户头像的Data URL */
+    this.bot.on('user-avatar', avatar => {
+      try {
+        avatar = avatar.split(';base64,').pop()
+        avatar = Buffer.from(avatar, 'base64')
+        const _path = process.cwd() + `/temp/WeXin/${this.id}.jpg`
+        if (!fs.existsSync(_path)) fs.writeFileSync(_path, avatar)
+      } catch (error) {
+        console.log(error)
+      }
+    })
 
-      /** 登出 */
-      this.bot.on('logout', () => {
-        common.info(this.id, `Bot${this.name}已登出`)
-        try { fs.unlinkSync(`${Bot.lain._path}/${this.id}.json`) } catch { }
-      })
+    /** 接收消息 */
+    this.bot.on('message', async msg => {
+      msg = await this.msg(msg)
+      if (!msg) return
+      Bot.emit('message', msg)
+    })
 
-      /** 捕获错误 */
-      this.bot.on('error', err => {
-        common.error(this.id, err?.tips || err)
-        common.debug(this.io, err)
-      })
+    /** 登出 */
+    this.bot.on('logout', () => {
+      common.info(this.id, `Bot${this.name}已登出`)
+      try { fs.unlinkSync(`${Bot.lain._path}/${this.id}.json`) } catch { }
+    })
+
+    /** 捕获错误 */
+    this.bot.on('error', err => {
+      common.error(this.id, err?.tips || err)
+      common.debug(this.io, err)
     })
   }
 

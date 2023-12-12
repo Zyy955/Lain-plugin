@@ -163,7 +163,7 @@ Bot.lain = {
       },
       /** 依赖包 */
       apk: {
-        display: 'qq-group-bot',
+        display: 'wechat4u',
         version: dependencies.wechat4u.replace('^', '')
       }
     }
