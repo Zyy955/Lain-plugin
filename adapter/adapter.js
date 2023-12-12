@@ -46,6 +46,24 @@ adapter.push(async function httpServer () {
   return await (new WebSocket()).server()
 })
 
+/** 加载微信 */
+adapter.push(async function wechat4u () {
+  const StartWeChat4u = (await import('./WeChat-Web/index.js')).default
+  const _path = fs.readdirSync('./plugins/Lain-plugin/config')
+  const Jsons = _path.filter(file => file.endsWith('.json'))
+  if (Jsons.length > 0) {
+    Jsons.forEach(async i => {
+      const id = i.replace(/\.json$/gi, '')
+      try {
+        await new StartWeChat4u(id, i)
+      } catch (error) {
+        common.error('Lain-plugin', `微信 ${id} 登录失败，已跳过。`)
+        common.error('Lain-plugin', error)
+      }
+    })
+  }
+})
+
 /** 加载适配器 */
 for (let i of adapter) {
   try {

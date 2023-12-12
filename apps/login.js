@@ -1,6 +1,6 @@
 import common from '../model/common.js'
 import StartWeChat4u from '../adapter/WeChat-Web/index.js'
-
+import fs from 'fs'
 export class WebWcChat extends plugin {
   constructor () {
     super({
@@ -27,8 +27,10 @@ export class WebWcChat extends plugin {
 
   async login () {
     let login = false
-    const id = `wx_${parseInt(Date.now() / 1000)}`
-    await new StartWeChat4u(id)
+    const id = 'wx_1702356612'
+    // const id = `wx_${parseInt(Date.now() / 1000)}`
+    const test = JSON.parse(fs.readFileSync(`./plugins/Lain-plugin/config/${id}.json`))
+    await new StartWeChat4u(id, 'wx_1702356612.json')
 
     for (let i = 0; i < 60; i++) {
       if (!login && Bot.lain.loginMap.get(id)) {

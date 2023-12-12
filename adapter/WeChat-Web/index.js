@@ -21,7 +21,7 @@ export default class StartWeChat4u {
     }
 
     if (this.config) {
-      this.bot = new WeChat4u(JSON.parse(fs.readFileSync(`./plugins/Lain-plugin/config/${this.id}.json`)))
+      this.bot = new WeChat4u(JSON.parse(fs.readFileSync(`./plugins/Lain-plugin/config/${this.config}`)))
       this.bot.restart()
     } else {
       this.bot = new WeChat4u()
@@ -33,10 +33,9 @@ export default class StartWeChat4u {
       const url = `https://login.weixin.qq.com/qrcode/${uuid}`
       Bot.lain.loginMap.set(this.id, { url, uuid, login: false })
       common.info(this.id, `请扫码登录：${url}`)
-      // const response = await fetch(url)
-      // const buffer = await response.arrayBuffer()
-      // this.e.reply([segment.image(Buffer.from(buffer)), '请扫码登录'], false, { recall: 10 })
     })
+
+    /** 登录事件 */
     this.bot.on('login', () => {
       this.name = this.bot.user.NickName
       common.info(this.id, '登录成功，正在加载资源...')
@@ -80,7 +79,11 @@ export default class StartWeChat4u {
       if (!Bot.adapter.includes(String(this.id))) Bot.adapter.push(String(this.id))
 
       /** 接收消息 */
-      this.bot.on('message', async msg => Bot.emit('message', await this.msg(msg)))
+      this.bot.on('message', async msg => {
+        msg = await this.msg(msg)
+        if (!msg) return
+        Bot.emit('message', msg)
+      })
 
       /** 登出 */
       this.bot.on('logout', () => {
@@ -142,15 +145,6 @@ export default class StartWeChat4u {
     let toString = ''
     const message = []
 
-    /** 机器人uin */
-    // const uin = msg.ToUserName
-    /** 机器人名称 */
-    // const this.name = this.bot.user.NickName
-
-    // const log = !/^@@/.test(from)
-    //   ? `好友消息(${this.name})：[${nickname}(${from})]`
-    //   : `群消息(${this.name})：[${group_name}(${from})，${nickname}(${msg.OriginalContent.split(':')[0]})]`
-
     switch (msg.MsgType) {
       /** 文本 */
       case this.bot.CONF.MSGTYPE_TEXT:
@@ -160,16 +154,17 @@ export default class StartWeChat4u {
         break
       /** 图片 */
       case this.bot.CONF.MSGTYPE_IMAGE:
-        await this.bot.getMsgImg(msg.MsgId)
-          .then(res => {
-            const md5 = msg.Content.match(/md5=".*?"/)[0].replace(/md5|=|"/g, '')
-            // const _path = `${this._data}/image/${md5}.jpg`
-            // fs.writeFileSync(_path, res.data)
-            // logger.info(`${log} [图片：${_path}]`)
-            // message.push({ type: 'image', file: _path })
-            // toString += `{image:${_path}}`
-          })
-          .catch(err => { this.bot.emit('error', err?.tips) })
+        const test = await this.bot.getMsgImg(msg.MsgId)
+        console.log(test)
+        // .then(res => {
+        //   const md5 = msg.Content.match(/md5=".*?"/)[0].replace(/md5|=|"/g, '')
+        //   // const _path = `${this._data}/image/${md5}.jpg`
+        //   // fs.writeFileSync(_path, res.data)
+        //   // logger.info(`${log} [图片：${_path}]`)
+        //   // message.push({ type: 'image', file: _path })
+        //   // toString += `{image:${_path}}`
+        // })
+        // .catch(err => { this.bot.emit('error', err?.tips) })
         break
 
       /** 好友请求消息 */
@@ -223,16 +218,16 @@ export default class StartWeChat4u {
     if (/^@@/.test(msg.FromUserName)) {
       const group_id = `wx_${msg.FromUserName}`
       const user_id = `wx_${msg.OriginalContent.split(':')[0]}`
+      e.sub_type = 'normal'
+      e.message_type = 'group'
+      e.group_id = group_id
+      e.user_id = user_id
+      e.group_name = this.bot.contacts[msg.FromUserName].getDisplayName().replace('[群] ', '')
+      e.member = { info: { group_id, user_id, nickname, last_sent_time: msg.CreateTime }, group_id }
       e.group = {
-        sub_type: 'normal',
-        message_type: 'group',
-        group_id,
-        user_id,
-        group_name: this.bot.contacts[msg.FromUserName].getDisplayName().replace('[群] ', ''),
-        member: { info: { group_id, user_id, nickname, last_sent_time: msg.CreateTime }, group_id },
         getChatHistory: (seq, num) => [],
         recallMsg: (MsgID) => this.bot.revokeMsg(MsgID, from),
-        sendMsg: async (reply) => await this.reply(id, msg, reply),
+        sendMsg: async (reply) => await this.reply(this.id, msg, reply),
         makeForwardMsg: async (data) => await common.makeForwardMsg(data)
       }
       e.sender = {
@@ -243,10 +238,10 @@ export default class StartWeChat4u {
       }
     } else {
       const user_id = `wx_${msg.FromUserName}`
+      e.user_id = user_id
+      e.sub_type = 'friend'
+      e.message_type = 'private'
       e.friend = {
-        user_id,
-        sub_type: 'friend',
-        message_type: 'private',
         recallMsg: (MsgID) => this.bot.revokeMsg(MsgID, from),
         makeForwardMsg: async (data) => await common.makeForwardMsg(data),
         getChatHistory: (seq, num) => [],
@@ -351,11 +346,9 @@ export default class StartWeChat4u {
   }
 }
 
-
 /** 读取现有的进行登录 */
 // const file = fs.readdirSync('./plugins/WeChat-Web-plugin/data/data')
 // const Jsons = file.filter(file => file.endsWith('.json'))
 // if (Jsons.length > 0) {
 //   adapter.login(Jsons)
 // }
-
