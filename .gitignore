@@ -4,3 +4,4 @@ config/bot.yaml
 config/QQBot.yaml
 resources/image
 resources/QQBotApi
+config/*json

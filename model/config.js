@@ -56,6 +56,7 @@ if (!fs.existsSync(_path + '/QQBot.yaml')) {
   fs.writeFileSync(_path + '/QQBot.yaml', 'ndefault: {}', 'utf8')
 }
 if (!fs.existsSync(_path + '/../resources/QQBotApi')) fs.mkdirSync(_path + '/../resources/QQBotApi')
+if (!fs.existsSync(process.cwd() + '/temp/WeXin')) fs.mkdirSync(process.cwd() + '/temp/WeXin')
 
 const cfg = Yaml.parse(fs.readFileSync(_path + '/config.yaml', 'utf8'))
 const packYZ = JSON.parse(fs.readFileSync('./package.json', 'utf-8'))

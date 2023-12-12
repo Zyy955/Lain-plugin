@@ -1,6 +1,7 @@
+import fs from 'fs'
 import common from '../model/common.js'
 import StartWeChat4u from '../adapter/WeChat-Web/index.js'
-import fs from 'fs'
+
 export class WebWcChat extends plugin {
   constructor () {
     super({
@@ -11,15 +12,18 @@ export class WebWcChat extends plugin {
       rule: [
         {
           reg: '^#微信登录$',
-          fnc: 'login'
+          fnc: 'login',
+          permission: 'master'
         },
         {
           reg: '^#微信账号$',
-          fnc: 'account'
+          fnc: 'account',
+          permission: 'master'
         },
         {
           reg: '^#微信删除.*$',
-          fnc: 'delUser'
+          fnc: 'delUser',
+          permission: 'master'
         }
       ]
     })
@@ -27,10 +31,8 @@ export class WebWcChat extends plugin {
 
   async login () {
     let login = false
-    const id = 'wx_1702356612'
-    // const id = `wx_${parseInt(Date.now() / 1000)}`
-    const test = JSON.parse(fs.readFileSync(`./plugins/Lain-plugin/config/${id}.json`))
-    await new StartWeChat4u(id, 'wx_1702356612.json')
+    const id = `wx_${parseInt(Date.now() / 1000)}`
+    await new StartWeChat4u(id)
 
     for (let i = 0; i < 60; i++) {
       if (!login && Bot.lain.loginMap.get(id)) {
@@ -58,6 +60,28 @@ export class WebWcChat extends plugin {
         return this.e.reply(`Bot：${id} 登录成功~`, true, { at: true })
       }
       await common.sleep(1000)
+    }
+  }
+
+  async account () {
+    const _path = fs.readdirSync('./plugins/Lain-plugin/config')
+    const Jsons = _path.filter(file => file.endsWith('.json')).map(file => file.replace('.json', ''))
+    if (Jsons) {
+      return await this.reply(`微信账号：\n${Jsons.join('\n')}`, true)
+    } else {
+      return await this.reply('还没有账号呢~', true)
+    }
+  }
+
+  async delUser () {
+    const msg = this.e.msg.replace(/#微信删除/, '').trim()
+    try {
+      const _path = Bot.lain._path + `/${msg}.json`
+      Bot[msg].stop()
+      if (fs.existsSync(_path)) fs.unlinkSync(_path)
+      return await this.reply(`已停止并删除${msg}`, true)
+    } catch (error) {
+      return await this.e.reply(`账号 ${msg} 不存在`)
     }
   }
 }
