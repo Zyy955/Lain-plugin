@@ -50,63 +50,63 @@ function nickname (id) {
 * @param id Bot的id、QQ
 * @param log 日志内容
 */
-function info (id, log) {
+function info (id, ...log) {
   id = nickname(id)
-  logger.info(id || '', log)
+  logger.info(id || '', ...log)
 }
 
 /**
 * @param id Bot的id、QQ
 * @param log 日志内容
 */
-function error (id, log) {
+function error (id, ...log) {
   id = nickname(id)
-  logger.error(id || '', log)
+  logger.error(id || '', ...log)
 }
 
 /**
 * @param id Bot的id、QQ
 * @param log 日志内容
 */
-function mark (id, log) {
+function mark (id, ...log) {
   id = nickname(id)
-  logger.mark(id || '', log)
+  logger.mark(id || '', ...log)
 }
 
 /**
 * @param id Bot的id、QQ
 * @param log 日志内容
 */
-function debug (id, log) {
+function debug (id, ...log) {
   id = nickname(id)
-  logger.debug(id || '', log)
+  logger.debug(id || '', ...log)
 }
 
 /**
 * @param id Bot的id、QQ
 * @param log 日志内容
 */
-function warn (id, log) {
+function warn (id, ...log) {
   id = nickname(id)
-  logger.warn(id || '', log)
+  logger.warn(id || '', ...log)
 }
 
 /**
 * @param id Bot的id、QQ
 * @param log 日志内容
 */
-function trace (id, log) {
+function trace (id, ...log) {
   id = nickname(id)
-  logger.trace(id || '', log)
+  logger.trace(id || '', ...log)
 }
 
 /**
 * @param id Bot的id、QQ
 * @param log 日志内容
 */
-function fatal (id, log) {
+function fatal (id, ...log) {
   id = nickname(id)
-  logger.fatal(id || '', log)
+  logger.fatal(id || '', ...log)
 }
 
 /** 适配器重启发送消息 */

@@ -133,220 +133,9 @@ export default new class zaiMsg {
           return await api.set_group_ban(self_id, group_id, user_id, time)
         }
       }
-      /** 获取bot是否为ow或者admin */
-      let is_admin = false
-      let is_owner = false
-      try {
-        const get_bot_info = await Bot[self_id].gml.get(group_id)
-        is_admin = get_bot_info?.[self_id]?.role === 'admin' || false
-        is_owner = get_bot_info?.[self_id]?.role === 'owner' || false
-      } catch (err) { }
-      e.group = {
-        name: e.group_name,
-        is_admin,
-        is_owner,
-        pickMember: (id, refresh = false, cb = () => { }) => {
-          if (!refresh) {
-            /** 取缓存！！！别问为什么，因为傻鸟同步 */
-            let member = Bot[self_id].gml.get(group_id)?.[id] || {}
-            member.info = { ...member }
-            return {
-              member,
-              ...member,
-              getAvatarUrl: (size = 0, userId = id) => `https://q1.qlogo.cn/g?b=qq&s=${size}&nk=${userId}`
-            }
-          } else {
-            api.get_group_member_info(self_id, group_id, id, true).then(res => {
-              if (typeof cb === 'function') {
-                cb(res)
-              }
-            })
-            return {}
-          }
-        },
-        getChatHistory: async (msg_id, num, reply) => {
-          try {
-            let { messages } = await api.get_group_msg_history(self_id, group_id, num, msg_id)
-
-            /** 获取一下消息本身 */
-            if (msg_id !== 0) {
-              let source = await api.get_msg(self_id, msg_id)
-              messages.push(source)
-            }
-            messages = messages
-              // 如果source获取失败，会报错
-              .filter(m => Array.isArray(m?.message))
-              .map(async m => {
-                m.group_name = group_name
-                m.atme = !!m.message.find(msg => msg.type === 'at' && msg.data?.qq == self_id)
-                m.raw_message = toRaw(m.message, self_id, group_id)
-                let result = await this.message(self_id, m.message, group_id, reply)
-                m = Object.assign(m, result)
-                return m
-              })
-            return Promise.all(messages)
-          } catch (err) {
-            // 老版本Shamrock不支持获取历史消息
-            let source = await api.get_msg(self_id, msg_id)
-            if (source?.message) {
-              const message = []
-              source.message.forEach(i => {
-                if (i.type === 'at') {
-                  message.push({ type: 'at', qq: Number(i.data.qq) })
-                } else {
-                  message.push({ type: i.type, ...i.data })
-                }
-              })
-              source.message = message
-            }
-            return [source]
-          }
-        },
-        recallMsg: async (msg_id) => {
-          return await api.delete_msg(self_id, msg_id)
-        },
-        sendMsg: async (msg, quote) => {
-          const peer_id = group_id
-          return await (new SendMsg(self_id, isGroup)).message(msg, peer_id, quote ? message_id : false)
-        },
-        makeForwardMsg: async (forwardMsg) => {
-          return await common.makeForwardMsg(forwardMsg, true)
-        },
-        /** 戳一戳 */
-        pokeMember: async (operator_id) => {
-          return await api.group_touch(self_id, group_id, operator_id)
-        },
-        /** 禁言 */
-        muteMember: async (qq, time) => {
-          return await api.set_group_ban(self_id, group_id, qq, time)
-        },
-        /** 全体禁言 */
-        muteAll: async (type) => {
-          return await api.set_group_whole_ban(self_id, group_id, type)
-        },
-        getMemberMap: async () => {
-          let groupMember = Bot[self_id].gml.get(group_id)
-          if (groupMember && Object.keys(groupMember) > 0) return groupMember
-          groupMember = new Map()
-          let memberList = await api.get_group_member_list(self_id, group_id)
-          memberList.forEach(user => {
-            groupMember.set(user.user_id, user)
-          })
-          return groupMember
-        },
-        /** 退群 */
-        quit: async () => {
-          return await api.set_group_leave(self_id, group_id)
-        },
-        /** 设置管理 */
-        setAdmin: async (qq, type) => {
-          return await api.set_group_admin(self_id, group_id, qq, type)
-        },
-        /** 踢 */
-        kickMember: async (qq, reject_add_request = false) => {
-          return await api.set_group_kick(self_id, group_id, qq, reject_add_request)
-        },
-        /** 头衔 **/
-        setTitle: async (qq, title, duration) => {
-          return await api.set_group_special_title(self_id, group_id, qq, title)
-        },
-        /** 修改群名片 **/
-        setCard: async (qq, card) => {
-          return await api.set_group_card(self_id, group_id, qq, card)
-        },
-        setEssenceMessage: async (msg_id) => {
-          let res = await api.set_essence_msg(self_id, msg_id)
-          if (res?.message === '成功') {
-            return '加精成功'
-          } else {
-            return res?.message
-          }
-        },
-        /** 移除群精华消息 **/
-        removeEssenceMessage: async (msg_id) => {
-          let res = await api.delete_essence_msg(self_id, msg_id)
-          if (res?.message === '成功') {
-            return '移除精华成功'
-          } else {
-            return res?.message
-          }
-        },
-        sendFile: async (filePath) => {
-          if (!fs.existsSync(filePath)) return true
-          /** 先传到shamrock... */
-          const base64 = 'base64://' + fs.readFileSync(filePath).toString('base64')
-          const { file } = await api.download_file(self_id, base64)
-          let name = path.basename(filePath)
-          return await api.upload_group_file(self_id, group_id, file, name.replace(/^\./, ''))
-        },
-        sign: async () => {
-          await api.send_group_sign(self_id, group_id)
-        },
-        shareMusic: async (platform, id) => {
-          if (!['qq', '163'].includes(platform)) {
-            return 'platform not supported yet'
-          }
-          let msg = new SendMsg(this.id, true)
-          return await msg.message({
-            type: 'music',
-            data: {
-              type: platform,
-              id
-            }
-          }, group_id)
-        }
-      }
+      e.group = { ...this.pickGroup(group_id) }
     } else {
-      e.friend = {
-        sendMsg: async (msg, quote) => {
-          const peer_id = user_id
-          return await (new SendMsg(self_id, isGroup)).message(msg, peer_id, quote ? message_id : false)
-        },
-        recallMsg: async (msg_id) => {
-          return await api.delete_msg(self_id, msg_id)
-        },
-        makeForwardMsg: async (forwardMsg) => {
-          return await common.makeForwardMsg(forwardMsg, true)
-        },
-        getChatHistory: async (msg_id, num, reply = true) => {
-          try {
-            let messages = await api.get_history_msg(self_id, 'private', user_id, null, num, msg_id)
-            messages = messages.map(async m => {
-              m.raw_message = toRaw(m.message, self_id, group_id)
-              let result = await this.message(self_id, m.message, null, reply)
-              m = Object.assign(m, result)
-              return m
-            })
-            return Promise.all(messages)
-          } catch (err) {
-            // 老版本Shamrock不支持获取历史消息
-            let source = await api.get_msg(self_id, msg_id)
-            if (source?.message) {
-              const message = []
-              source.message.forEach(i => {
-                if (i.type === 'at') {
-                  message.push({ type: 'at', qq: Number(i.data.qq) })
-                } else {
-                  message.push({ type: i.type, ...i.data })
-                }
-              })
-              source.message = message
-            }
-            return [source]
-          }
-        },
-        getAvatarUrl: async (size = 0, userID = user_id) => {
-          return `https://q1.qlogo.cn/g?b=qq&s=${size}&nk=${userID}`
-        },
-        sendFile: async (filePath) => {
-          if (!fs.existsSync(filePath)) return true
-          /** 先传到shamrock... */
-          const base64 = 'base64://' + fs.readFileSync(filePath).toString('base64')
-          const { file } = await api.download_file(self_id, base64)
-          let name = path.basename(filePath)
-          return await api.upload_private_file(self_id, user_id, file, name.replace(/^\./, ''))
-        }
-      }
+      e.friend = { ...this.pickFriend(user_id) }
     }
 
     /** 将收到的消息转为字符串 */
@@ -444,13 +233,13 @@ export async function message (id, msg, group_id, reply = true) {
 
 /**
  *
- * @param msg 消息，yunzai的或shamrock格式的
- * @param self_id 机器人qq
+ * @param msg message，yunzai的或shamrock格式的
  * @param group_id 群号
  * @return {string}
  */
-export function toRaw (msg = [], self_id, group_id) {
+export function toRaw (msg = [], group_id) {
   const raw_message = []
+  const 
   for (let i of msg) {
     switch (i.type) {
       case 'image':
