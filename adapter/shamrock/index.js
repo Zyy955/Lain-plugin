@@ -660,8 +660,53 @@ class Shamrock {
   }
 
   /** 制作转发消息 */
-  async makeForwardMsg (message) {
-    return await common.makeForwardMsg(message, true)
+  async makeForwardMsg (data) {
+    if (!Array.isArray(data)) data = [data]
+    let makeForwardMsg = {
+      /** 标记下，视为转发消息，防止套娃 */
+      test: true,
+      message: [],
+      data: { type: 'test', text: 'forward', app: 'com.tencent.multimsg', meta: { detail: { news: [{ text: '1' }] }, resid: '', uniseq: '', summary: '' } }
+    }
+
+    let msg = []
+    for (let i in data) {
+      /** 该死的套娃，能不能死一死啊... */
+      if (typeof data[i] === 'object' && (data[i]?.test || data[i]?.message?.test)) {
+        if (data[i]?.message?.test) {
+          makeForwardMsg.message.push(...data[i].message.message)
+        } else {
+          makeForwardMsg.message.push(...data[i].message)
+        }
+      } else {
+        if (!data[i]?.message) continue
+        msg.push(data[i].message)
+      }
+    }
+
+    if (msg.length) {
+      let { message, raw_message } = await this.getShamrock(msg)
+      /** 重新处理文本 */
+      const msgNew = []
+      const messageNew = []
+      message.forEach(i => {
+        if (i.type !== 'text') {
+          messageNew.push(i)
+        } else {
+          msgNew.push(i.data.text)
+        }
+      })
+
+      if (msgNew.length) messageNew.push({ type: 'text', data: { text: msgNew.join('\n\n').trim() } })
+
+      try {
+        const { message_id } = await api.send_private_msg(this.id, this.id, messageNew, raw_message)
+        makeForwardMsg.message.push({ type: 'node', data: { id: message_id } })
+      } catch (err) {
+        common.error(this.id, err)
+      }
+    }
+    return makeForwardMsg
   }
 
   /** 撤回消息 */
@@ -1068,15 +1113,15 @@ class Shamrock {
  * @param {boolean} quote - 是否引用回复
  */
   async sendReplyMsg (e, id, msg, quote) {
-    let { message, raw_message } = await this.getShamrock(msg)
+    let { message, raw_message, node } = await this.getShamrock(msg)
 
     if (quote) {
       message.push({ type: 'reply', data: { id: e.message_id } })
       raw_message = '[回复]' + raw_message
     }
 
-    if (e.isGroup) return await api.send_group_msg(this.id, id, message, raw_message)
-    return await api.send_group_msg(this.id, id, message, raw_message)
+    if (e.isGroup) return await api.send_group_msg(this.id, id, message, raw_message, node)
+    return await api.send_private_msg(this.id, id, message, raw_message)
   }
 
   /**
@@ -1085,8 +1130,8 @@ class Shamrock {
    * @param {string|object|array} msg - 消息内容
    */
   async sendFriendMsg (user_id, msg) {
-    const { message, raw_message } = await this.getShamrock(msg)
-    return await api.send_group_msg(this.id, user_id, message, raw_message)
+    const { message, raw_message, node } = await this.getShamrock(msg)
+    return await api.send_private_msg(this.id, user_id, message, raw_message, node)
   }
 
   /**
@@ -1095,8 +1140,8 @@ class Shamrock {
    * @param {string|object|array} msg - 消息内容
    */
   async sendGroupMsg (group_id, msg) {
-    const { message, raw_message } = await this.getShamrock(msg)
-    return await api.send_group_msg(this.id, group_id, message, raw_message)
+    const { message, raw_message, node } = await this.getShamrock(msg)
+    return await api.send_group_msg(this.id, group_id, message, raw_message, node)
   }
 
   /**
@@ -1128,6 +1173,7 @@ class Shamrock {
           raw_message.push(`${faceMap[Number(i.id)]}]`)
           break
         case 'text':
+          if (typeof value !== 'number' && !i.text.trim()) break
           message.push({ type: 'text', data: { text: i.text } })
           raw_message.push(i.text)
           break
@@ -1231,8 +1277,9 @@ class Shamrock {
           raw_message.push(i.text)
           break
         case 'node':
-          message.push({ type: 'node', data: { ...i } })
-          raw_message.push(`[转发消息:${i.id}]`)
+          node = true
+          message.push({ type: 'node', data: { ...i.data } })
+          raw_message.push(`[转发消息:${i.data.id}]`)
           break
         default:
           // 为了兼容更多字段，不再进行序列化，风险是有可能未知字段导致Shamrock崩溃
@@ -1245,21 +1292,7 @@ class Shamrock {
     raw_message = raw_message.join('')
 
     /** 合并转发 */
-    if (node) {
-      const NodeMsg = []
-      NodeMsg.push(...message
-        .filter(i => !(i.type == 'at' || i.type == 'record'))
-        .map(i => ({
-          type: 'node',
-          data: {
-            name: this.name,
-            content: [i]
-          }
-        }))
-      )
-      message = NodeMsg
-      raw_message = `[转发消息:${JSON.stringify(message)}]`
-    }
+    if (node) raw_message = `[转发消息:${JSON.stringify(message)}]`
 
     return { message, raw_message, node }
   }

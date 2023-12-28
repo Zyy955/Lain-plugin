@@ -134,6 +134,8 @@ async function init (key = 'Lain:restart') {
 /** 将云崽过来的消息全部统一格式存放到数组里面 */
 function array (data) {
   let msg = []
+  /** Shamrock转发消息 */
+  if (typeof data === 'object' && data?.test && data?.data?.type === 'test') return data.message
   /** 将格式统一为对象 随后进行转换成api格式 */
   if (data?.[0]?.data?.type === 'test' || data?.[1]?.data?.type === 'test') {
     msg.push(...(data?.[0].msg || data?.[1].msg))

@@ -689,7 +689,7 @@ let api = {
   * @param {object} message - 发送内容
   * @param {string} raw_message - 发送内容日志
   */
-  async send_private_msg (id, user_id, message, raw_message) {
+  async send_private_msg (id, user_id, message, raw_message, node) {
     /** 打印日志 */
     common.info(id, `[发送好友消息(${user_id})]${raw_message}`)
 
@@ -699,6 +699,8 @@ let api = {
     } else {
       try { common.MsgTotal(id, 'shamrock') } catch { }
     }
+
+    if (node) return await api.send_private_forward_msg(id, user_id, message)
 
     const params = { user_id, message }
     const data = await this.SendApi(id, 'send_private_msg', params)
@@ -718,7 +720,7 @@ let api = {
   * @param {object} message - 发送内容
   * @param {string} raw_message - 发送内容日志
   */
-  async send_group_msg (id, group_id, message, raw_message) {
+  async send_group_msg (id, group_id, message, raw_message, node) {
     /** 打印日志 */
     common.info(id, `[发送群消息(${group_id})]${raw_message}`)
 
@@ -728,6 +730,8 @@ let api = {
     } else {
       try { common.MsgTotal(id, 'shamrock') } catch { }
     }
+
+    if (node) return await api.send_group_forward_msg(id, group_id, message)
 
     const params = { group_id, message }
     const data = await this.SendApi(id, 'send_group_msg', params)
