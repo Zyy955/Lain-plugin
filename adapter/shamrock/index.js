@@ -302,7 +302,7 @@ class Shamrock {
       pickFriend: (user_id) => this.pickFriend(Number(user_id)),
       pickGroup: (group_id) => this.pickGroup(Number(group_id)),
       setEssenceMessage: async (msg_id) => await this.setEssenceMessage(msg_id),
-      sendPrivateMsg: async (user_id, msg) => await this.sendMsg(Number(user_id), msg, false),
+      sendPrivateMsg: async (user_id, msg) => await this.sendFriendMsg(Number(user_id), msg),
       getGroupMemberInfo: async (group_id, user_id, no_cache) => await this.getGroupMemberInfo(Number(group_id), Number(user_id), no_cache),
       removeEssenceMessage: async (msg_id) => await this.removeEssenceMessage(msg_id),
       makeForwardMsg: async (message) => await common.makeForwardMsg(message, true),
@@ -477,7 +477,7 @@ class Shamrock {
       is_admin: is_owner || is_admin,
       is_owner,
       /** 发送消息 */
-      sendMsg: async (msg) => await this.sendMsg(group_id, msg, true),
+      sendMsg: async (msg) => await this.sendGroupMsg(group_id, msg),
       /** 撤回消息 */
       recallMsg: async (msg_id) => await this.recallMsg(msg_id),
       /** 制作转发 */
@@ -538,7 +538,7 @@ class Shamrock {
   /** 好友对象 */
   pickFriend (user_id) {
     return {
-      sendMsg: async (msg) => await this.sendMsg(user_id, msg, false),
+      sendMsg: async (msg) => await this.sendFriendMsg(user_id, msg, false),
       recallMsg: async (msg_id) => await this.recallMsg(msg_id),
       makeForwardMsg: async (message) => await this.makeForwardMsg(message),
       getAvatarUrl: (size = 0) => `https://q1.qlogo.cn/g?b=qq&s=${size}&nk=${user_id}`,
@@ -828,7 +828,7 @@ class Shamrock {
           }
           break
         case 'text':
-          message.push({ type: 'text', text: i.text })
+          message.push({ type: 'text', text: i.data.text })
           raw_message.push(i.data.text)
           log_message.push(i.data.text)
           break
@@ -1125,7 +1125,7 @@ class Shamrock {
           break
         case 'face':
           message.push({ type: 'face', data: { id: Number(i.id) } })
-          raw_message.push(`${faceMap[Number(i.data.id)]}]`)
+          raw_message.push(`${faceMap[Number(i.id)]}]`)
           break
         case 'text':
           message.push({ type: 'text', data: { text: i.text } })
