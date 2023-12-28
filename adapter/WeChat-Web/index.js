@@ -346,7 +346,7 @@ export default class StartWeChat4u {
 
   /** 统一文件格式 */
   async getFile (i, type = 'image') {
-    const res = common.getFile(i)
+    const res = Bot.toType(i)
     let { file } = res
     let filename
 

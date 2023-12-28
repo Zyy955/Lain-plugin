@@ -281,7 +281,7 @@ export default class StartQQBot {
 
   /** 统一传入的格式并上传 */
   async Upload (i, type) {
-    const { file } = common.getFile(i)
+    const { file } = Bot.toType(i)
     /** 自定义图床、语音、视频 */
     try {
       /** 新接口 */
@@ -332,7 +332,7 @@ export default class StartQQBot {
 
   /** 处理语音... */
   async get_audio (i) {
-    let { type, file } = common.getFile(i)
+    let { type, file } = Bot.toType(i)
     const filePath = process.cwd() + '/plugins/Lain-plugin/resources/QQBotApi'
     const pcm = path.join(filePath, `${Date.now()}.pcm`)
     const silk = path.join(filePath, `${Date.now()}.silk`)

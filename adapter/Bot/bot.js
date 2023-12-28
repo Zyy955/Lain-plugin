@@ -3,28 +3,76 @@ import fs from 'fs'
 import sizeOf from 'image-size'
 import crypto from 'crypto'
 import fetch from 'node-fetch'
+import common from '../../model/common.js'
 
 /**
 * 传入文件，返回Buffer
 * 可以是http://、file://、base64://、buffer
 * @param {file://|base64://|http://|buffer} file
+* @param {object} data
+  - { http:true } 原样返回http
+  - { file:true } 原样返回file
+  - { base:true } 原样返回Base
+  - { buffer:true } 原样返回Buffer
 * @param {Promise<Buffer>} Buffer
 */
-async function bufferToFile (file) {
+async function bufferToFile (file, data) {
   if (Buffer.isBuffer(file) || file instanceof Uint8Array) {
+    if (data?.buffer) return file
     return file
   } else if (fs.existsSync(file.replace(/^file:\/\//, ''))) {
+    if (data?.file) return file
     return fs.readFileSync(file.replace(/^file:\/\//, ''))
   } else if (fs.existsSync(file.replace(/^file:\/\/\//, ''))) {
+    if (data?.file) return file.replace(/^file:\/\/\//, 'file://')
     return fs.readFileSync(file.replace(/^file:\/\/\//, ''))
   } else if (file.startsWith('base64://')) {
+    if (data?.base) return file
     return Buffer.from(file.replace(/^base64:\/\//, ''), 'base64')
   } else if (/^http(s)?:\/\//.test(file)) {
+    if (data?.http) return file
     let res = await fetch(file)
     if (!res.ok) {
       throw new Error(`请求错误！状态码: ${res.status}`)
     } else {
       return Buffer.from(await res.arrayBuffer())
+    }
+  } else {
+    throw new Error('传入的文件类型不符合规则，只接受url、buffer、file://路径或者base64编码的图片')
+  }
+}
+
+/**
+ * 传入文件，返回不带base64://格式的字符串
+ * 可以是http://、file://、base64://、buffer
+ * @param {file://|base64://|http://|buffer} file
+ * @param {object} data
+  - { http:true } 原样返回http
+  - { file:true } 原样返回file
+  - { base:true } 原样返回Base
+  - { buffer:true } 原样返回Buffer
+ * @returns {Promise<string>} base64字符串
+ */
+async function Base64ToFile (file, data) {
+  if (Buffer.isBuffer(file) || file instanceof Uint8Array) {
+    if (data?.buffer) return file
+    return file.toString('base64')
+  } else if (fs.existsSync(file.replace(/^file:\/\//, ''))) {
+    if (data?.file) return file
+    return fs.readFileSync(file.replace(/^file:\/\//, '')).toString('base64')
+  } else if (fs.existsSync(file.replace(/^file:\/\/\//, ''))) {
+    if (data?.file) return file.replace(/^file:\/\/\//, 'file://')
+    return fs.readFileSync(file.replace(/^file:\/\/\//, '')).toString('base64')
+  } else if (file.startsWith('base64://')) {
+    if (data?.base) return file
+    return file.replace(/^base64:\/\//, '')
+  } else if (/^http(s)?:\/\//.test(file)) {
+    if (data?.http) return file
+    let res = await fetch(file)
+    if (!res.ok) {
+      throw new Error(`请求错误！状态码: ${res.status}`)
+    } else {
+      return Buffer.from(await res.arrayBuffer()).toString('base64')
     }
   } else {
     throw new Error('传入的文件类型不符合规则，只接受url、buffer、file://路径或者base64编码的图片')
@@ -81,7 +129,77 @@ async function FileToUrl (file, type = 'image') {
   return { width, height, url, md5 }
 }
 
+/**
+* 处理segment中的图片、语音、文件，获取对应的类型
+* @param i 需要处理的对象
+* 传入类似于 {type:"image", file:"file://...", url:"http://"}
+*
+* 返回 {type:<file|buffer|base64|http|error>, file=:<file://|buffer|base64://|http://|i.file>}
+*
+* error为无法判断类型，直接返回i.file
+*/
+function toType (i) {
+  if (i?.url) {
+    if (i?.url?.includes('gchat.qpic.cn') && !i?.url?.startsWith('https://')) {
+      i = 'https://' + i.url
+    } else {
+      i = i.url
+    }
+  } else if (typeof i === 'object') {
+    i = i.file
+  }
+
+  let file
+  let type = 'file'
+
+  // 检查是否是Buffer类型
+  if (i?.type === 'Buffer') {
+    type = 'buffer'
+    file = Buffer.from(i?.data)
+  } else if (i?.type === 'Buffer' || i instanceof Uint8Array || Buffer.isBuffer(i?.data || i)) {
+    type = 'buffer'
+    file = i?.data || i
+  } else if (i instanceof fs.ReadStream || i?.path) {
+    // 检查是否是ReadStream类型
+    if (fs.existsSync(i.path)) {
+      file = `file://${i.path}`
+    } else {
+      file = `file://./${i.path}`
+    }
+  } else if (typeof i === 'string') {
+    // 检查是否是字符串类型
+    if (fs.existsSync(i.replace(/^file:\/\//, ''))) {
+      file = i
+    } else if (fs.existsSync(i.replace(/^file:\/\/\//, ''))) {
+      file = i.replace(/^file:\/\/\//, 'file://')
+    } else if (fs.existsSync(i)) {
+      file = `file://${i}`
+    } else if (/^base64:\/\//.test(i)) {
+      // 检查是否是base64格式的字符串
+      type = 'base64'
+      file = i
+    } else if (/^http(s)?:\/\//.test(i)) {
+      // 如果是url，则直接返回url
+      type = 'http'
+      file = i
+    } else {
+      common.log('Lain-plugin', '未知格式，无法处理：' + i)
+      type = 'error'
+      file = i
+    }
+  } else {
+    // 留个容错
+    common.log('Lain-plugin', '未知格式，无法处理：' + i)
+    type = 'error'
+    file = i
+  }
+
+  return { type, file }
+}
+
 /** 赋值给全局Bot */
+Bot.toType = toType
 Bot.Buffer = bufferToFile
+Bot.Base64 = Base64ToFile
 Bot.uploadQQ = uploadQQ
 Bot.FileToUrl = FileToUrl

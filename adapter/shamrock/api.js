@@ -682,23 +682,84 @@ let api = {
     return await this.SendApi(id, 'get_prohibited_member_list', params)
   },
 
+  /**
+  * 发送好友消息
+  * @param {string} id - 机器人QQ
+  * @param {number} user_id - 目标QQ
+  * @param {object} message - 发送内容
+  * @param {string} raw_message - 发送内容日志
+  */
+  async send_private_msg (id, user_id, message, raw_message) {
+    /** 打印日志 */
+    common.info(id, `[发送好友消息(${user_id})]${raw_message}`)
+
+    /** 保存发送记录 */
+    if (raw_message.includes('[图片:')) {
+      try { common.MsgTotal(id, 'shamrock', 'image') } catch { }
+    } else {
+      try { common.MsgTotal(id, 'shamrock') } catch { }
+    }
+
+    const params = { user_id, message }
+    const data = await this.SendApi(id, 'send_private_msg', params)
+    /** 储存自身发送的消息 */
+    try { redis.set(`Shamrock:${id}:${data.message_id}`, JSON.stringify(data), { EX: 120 }) } catch { }
+    return {
+      ...data,
+      seq: data.message_id,
+      rand: 1
+    }
+  },
+
+  /**
+  * 发送群聊消息
+  * @param {string} id - 机器人QQ
+  * @param {number} group_id - 目标群号
+  * @param {object} message - 发送内容
+  * @param {string} raw_message - 发送内容日志
+  */
+  async send_group_msg (id, group_id, message, raw_message) {
+    /** 打印日志 */
+    common.info(id, `[发送群消息(${group_id})]${raw_message}`)
+
+    /** 保存发送记录 */
+    if (raw_message.includes('[图片:')) {
+      try { common.MsgTotal(id, 'shamrock', 'image') } catch { }
+    } else {
+      try { common.MsgTotal(id, 'shamrock') } catch { }
+    }
+
+    const params = { group_id, message }
+    const data = await this.SendApi(id, 'send_group_msg', params)
+    /** 储存自身发送的消息 */
+    try { redis.set(`Shamrock:${id}:${data.message_id}`, JSON.stringify(data), { EX: 120 }) } catch { }
+    return {
+      ...data,
+      seq: data.message_id,
+      rand: 1
+    }
+  },
+
+  /**
+  * 发送 WebSocket 请求
+  * @param {string} id - 机器人QQ
+  * @param {string} action - 请求 API 端点
+  * @param {string} params - 请求参数
+  */
   async SendApi (id, action, params) {
-    const bot = Bot.shamrock.get(String(id))
-    if (!bot) return common.error(id, '不存在此Bot')
     const echo = randomUUID()
-    // console.log("发送请求，echo:", echo, " 接口：", action, "参数：", params)
     common.debug(id, '[ws] send -> ' + JSON.stringify({ echo, action, params }))
-    bot.socket.send(JSON.stringify({ echo, action, params }))
+    Bot[id].ws.send(JSON.stringify({ echo, action, params }))
 
     for (let i = 0; i < 1200; i++) {
-      const data = await Bot.lain.on.get(echo)
+      const data = await Bot.echo.get(echo)
       if (data) {
-        Bot.lain.on.delete(echo)
+        Bot.echo.delete(echo)
         if (data.status === 'ok') {
           return data.data
         } else {
           common.error('Lain-plugin', data)
-          return data
+          throw data
         }
       } else {
         await common.sleep(50)
