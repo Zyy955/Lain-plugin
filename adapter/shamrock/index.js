@@ -1138,7 +1138,7 @@ class Shamrock {
             let file = await Bot.Base64(i.file, { http: true })
             /** 非链接需要先上传到手机 */
             if (!/^http:\/\//.test(file)) {
-              const data = await api.download_file(this.id, file)
+              const data = await api.download_file(this.id, `base64://${file}`)
               file = `file://${data.file}`
             }
             message.push({ type: 'record', data: { file } })
@@ -1154,7 +1154,7 @@ class Shamrock {
         case 'video':
           try {
             /** 视频文件需要先上传到手机 */
-            const { file } = await api.download_file(this.id, await Bot.Base64(i.file))
+            const { file } = await api.download_file(this.id, `base64://${await Bot.Base64(i.file)}`)
             message.push({ type: 'video', data: { file: `file://${file}` } })
           } catch (err) {
             common.error(this.id, '视频上传失败:', err)
