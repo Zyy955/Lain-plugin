@@ -1,5 +1,6 @@
 import { exec } from 'child_process'
 import fs from 'fs'
+import sizeOf from 'image-size'
 import path from 'path'
 import QQBot from 'qq-group-bot'
 import qrcode from 'qrcode'
@@ -245,9 +246,6 @@ export default class StartQQBot {
       e.friend = this.pickFriend(e.user_id)
     }
 
-    e.atme = true
-    e.atBot = true
-
     /** 添加适配器标识 */
     e.adapter = 'QQBot'
     e.user_id = `${this.id}-${e.user_id}`
@@ -282,9 +280,54 @@ export default class StartQQBot {
   }
 
   /** 统一传入的格式并上传 */
-  async Upload (i, uploadType) {
-    const { type, file } = common.getFile(i)
-    return await this.getFile(type, file, uploadType)
+  async Upload (i, type) {
+    const { file } = common.getFile(i)
+    /** 自定义图床、语音、视频 */
+    try {
+      /** 新接口 */
+      if (type === 'image' && Bot?.imageToUrl) {
+        const { width, height, url } = await Bot.imageToUrl(file)
+        common.mark('Lain-plugin', `使用自定义图床发送图片：${url}`)
+        return { type, file: url, width, height }
+      } else if (type === 'image' && Bot?.uploadFile) {
+        /** 老接口，后续废除 */
+        const url = await Bot.uploadFile(file)
+        common.mark('Lain-plugin', `使用自定义图床发送图片：${url}`)
+        const { width, height } = sizeOf(await Bot.Buffer(file))
+        console.warn('[Bot.uploadFile]接口即将废除!')
+        return { type, file: url, width, height }
+      } else if (type === 'audio' && Bot?.audioToUrl) {
+        /** 语音接口 */
+        const url = await Bot.audioToUrl(file)
+        common.mark('Lain-plugin', `使用自定义服务器发送语音：${url}`)
+        return { type, file: url }
+      } else if (type === 'video' && Bot?.videoToUrl) {
+        /** 视频接口 */
+        const url = await Bot.videoToUrl(file)
+        common.mark('Lain-plugin', `使用自定义服务器发送视频：${url}`)
+        return { type, file: url }
+      }
+    } catch (error) {
+      logger.error('自定义服务器调用错误，已跳过')
+    }
+
+    /** QQ图床 */
+    try {
+      if (type === 'image' && Bot.lain.cfg.QQBotUin) {
+        const { width, height, url } = await Bot.uploadQQ(file, Bot.lain.cfg.QQBotUin)
+        common.mark('Lain-plugin', `QQ图床上传成功：${url}`)
+        /** 图片多返回两个宽高 */
+        return type === 'image' ? { type, file: url, width, height } : { type, url }
+      }
+    } catch (error) {
+      logger.error('QQ图床调用错误，已跳过：', error)
+    }
+
+    /** 公网 */
+    const { width, height, url } = await Bot.FileToUrl(file, type)
+    common.mark('Lain-plugin', `使用公网临时服务器：${url}`)
+    /** 图片多返回两个宽高 */
+    return type === 'image' ? { type, file: url, width, height } : { type, file: url }
   }
 
   /** 处理语音... */
@@ -326,7 +369,7 @@ export default class StartQQBot {
       await encodeSilk(fs.readFileSync(pcm), 48000)
         .then((silkData) => {
           /** 转silk完成，保存 */
-          fs.writeFileSync(silk, silkData.data)
+          fs.writeFileSync(silk, silkData?.data || silkData)
           /** 删除初始mp3文件 */
           fs.unlink(file, () => { })
           /** 删除pcm文件 */
@@ -344,7 +387,7 @@ export default class StartQQBot {
 
     // 返回名称
     if (fs.existsSync(silk)) {
-      return await this.getFile('file', `file://${silk}`, 'audio')
+      return await this.Upload(`file://${silk}`, 'audio')
     } else {
       common.error('QQBotApi', '文件保存失败：' + silk)
       return { type: 'text', text: '文件保存失败...' }
@@ -434,65 +477,6 @@ export default class StartQQBot {
     return [{ type: 'text', text: msg }]
   }
 
-  /** 统一文件格式处理为url */
-  async getFile (type, file, uploadType) {
-    const { port, QQBotImgIP, QQBotPort, QQBotImgToken } = Bot.lain.cfg
-    /** url直接返回 */
-    if (type === 'http') return { type: uploadType, file }
-
-    /** 调用自定义图床 只要自定义方法存在，图片会强制性使用此方法 */
-    try {
-      if (uploadType === 'image' && Bot?.uploadFile) {
-        const url = await Bot.uploadFile(file)
-        common.mark('Lain-plugin', `使用自定义图床发送图片：${url}`)
-        return { type: uploadType, file: url }
-      }
-    } catch { }
-
-    /** 云盘已经失效，因为较多人无公网，暂时性添加一个QQ图床使用 */
-    try {
-      const botList = Bot.lain.cfg.QQBotUin ? [Bot.lain.cfg.QQBotUin] : Bot.adapter.filter(item => typeof item === 'number')
-      if ((!QQBotImgIP || QQBotImgIP === '127.0.0.1') && uploadType === 'image' && (botList.length)) {
-        common.mark('Lain-plugin', `使用QQ图床发送图片：${botList[0]}`)
-        const url = await Bot.uploadQQ(file, botList[0])
-        common.mark('Lain-plugin', `QQ图床上传成功：${url}`)
-        return { type: uploadType, file: url }
-      }
-    } catch (error) { console.log(error) }
-
-    /** 使用本地公网作为云盘 */
-    let extname = '.jpg'
-    if (uploadType == 'audio') extname = '.mp3'
-    else if (uploadType == 'video') extname = '.mp4'
-
-    /** 统一使用时间戳命名，无后缀，根据类型补后缀 */
-    let filePath = `${process.cwd()}/plugins/Lain-plugin/resources/QQBotApi/${Date.now()}`
-    let url = `http://${QQBotImgIP}:${QQBotPort || port}/api/QQBot?token=${QQBotImgToken}&name=`
-
-    filePath = filePath + extname
-
-    switch (type) {
-      case 'file':
-        filePath = filePath + path.extname(file)
-        fs.copyFileSync(file.replace(/^file:\/\//, ''), filePath)
-        break
-      case 'buffer':
-        fs.writeFileSync(filePath, Buffer.from(file))
-        break
-      case 'base64':
-        fs.writeFileSync(filePath, file.replace(/^base64:\/\//, ''), 'base64')
-        break
-      case 'http':
-      default:
-        common.mark('Lain-plugin', `发送文件：${file}`)
-        return { type: uploadType, file }
-    }
-
-    file = url + path.basename(filePath)
-    common.mark('Lain-plugin', `使用公网发送文件：${file}`)
-    return { type: uploadType, file }
-  }
-
   /** 转换message */
   async message (data) {
     data = common.array(data)
@@ -555,18 +539,23 @@ export default class StartQQBot {
     let { message, image } = await this.message(msg)
 
     if (e.bot.config?.markdown) {
-      allMsg.push(...await this.markdown(e, message))
-      if (image.length) allMsg.push(...await this.markdown(e, image))
-    } else {
-      allMsg.push(message)
-      if (image.length) {
-        allMsg.push(image)
+      if (e.bot.config?.super_markdown) {
+        if (image.length) message = [...message, ...image]
+        allMsg.push(...await this.markdown(e, message))
+      } else {
+        message = [message]
+        if (image.length) message.push(...image.map(i => [i]))
+        for (const i of message) allMsg.push(...await this.markdown(e, i))
       }
+    } else {
+      message = [message]
+      if (image.length) message.push(...image.map(i => [i]))
+      allMsg.push(...message)
     }
 
     for (let i of allMsg) {
       try {
-        if (!i || !i.length) continue
+        if (!i || (Array.isArray(i) && !i.length)) continue
         res = await e.sendMsg.call(e.data, i)
       } catch (error) {
         common.error(e.self_id, JSON.stringify(error))
@@ -606,10 +595,8 @@ export default class StartQQBot {
           markdown.params.push({ key: Bot.lain.cfg.QQBotMD.text || 'text_start', values: [i.text.replace(/\n/g, '\r')] })
           break
         case 'image':
-          if (/^http(s)?:\/\//.test(i.file)) i.file = await Bot.imgToUrl(i.file)
-          const { width, height } = await Bot.imgProc(i.file)
           markdown.params.push({ key: Bot.lain.cfg.QQBotMD.image || 'img_url', values: [i.file] })
-          markdown.params.push({ key: Bot.lain.cfg.QQBotMD.ImageSize || 'img_dec', values: [`text #${width}px #${height}px`] })
+          markdown.params.push({ key: Bot.lain.cfg.QQBotMD.ImageSize || 'img_dec', values: [`text #${i.width}px #${i.height}px`] })
           break
         default:
           message.push(i)

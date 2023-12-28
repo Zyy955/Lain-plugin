@@ -68,7 +68,7 @@ export default class WebSocket {
           /** 访问后删除文件 */
           try {
             setTimeout(() => {
-              fs.unlink(_path, (err) => { if (err) common.error('QQBotApi', err) })
+              if (fs.existsSync(_path)) fs.unlink(_path, (err) => { if (err) common.error('QQBotApi', err) })
             }, Number(Bot.lain.cfg.QQBotDelFiles) * 100)
           } catch { }
         }

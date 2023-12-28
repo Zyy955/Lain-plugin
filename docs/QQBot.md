@@ -23,6 +23,7 @@
 
 查看机器人：
 ```
+// 暂不可用
 #QQ频道账号
 ```
 
@@ -59,15 +60,76 @@ AppSecret(机器人密钥)：`abcdefghijklmnopqrstuvwxyz`
 
 是否沙箱选择**否**即可，选择是有可能导致收不到消息或消息发送报错。目前暂未发现需要选择是的情况。
 
-目前由于官方图片API的限制，发图需要使用在线url，我准备了3种方法，请注意查看以下
+目前由于官方API的限制，发图需要使用在线url，我准备了3种方法，请注意查看以下
 
-- 方法1：编写一个全局变量`Bot.uploadFile`，接收一个参数，返回url，例如花瓣图床，起点图床等。
-
+- 方法1：
+  - 图片：编写一个全局变量`Bot.imageToUrl`，接收一个参数，返回 `width, height, url`，例如花瓣图床，起点图床等。
+  - 语音：编写一个全局变量`Bot.audioToUrl`，接收一个参数，返回 `url`。
+  - 视频：编写一个全局变量`Bot.videoToUrl`，接收一个参数，返回 `url`。
 - 方法2：前往 [./plugins/Lain-plugin/config/config.yaml](../config/config.yaml) 配置公网地址，端口为配置文件中的`HTTP`端口，如果有转发，请修改`实际端口`选项。
-
 - 方法3：登录一个QQ机器人，随后前往[./plugins/Lain-plugin/config/config.yaml](../config/config.yaml)配置`QQBotUin`为QQ号，此方法仅可发送图片。
-
 - 适配器自带指令前缀/转#，默认打开。
+
+
+<details><summary>方法1图床编写参考</summary>
+
+```javascript
+// 编写后保存为js文件放到example文件夹
+import fs from 'fs'
+import fetch from 'node-fetch'
+
+/** key获取地址：https://api.imgbb.com/ 登录后获取即可 */
+const key = ''
+
+/** 上传后是否自动删除，单位秒 */
+const expiration = ''
+
+/**
+* ibb图床
+* @param file 文件，支持file://,buffer,base64://
+* @return url地址
+*/
+Bot.imageToUrl = async (file) => {
+  let base64
+  if (Buffer.isBuffer(file)) {
+    base64 = file.toString('base64')
+  } else if (file.startsWith('file://')) {
+    base64 = fs.readFileSync(file.slice(7)).toString('base64')
+  } else if (file.startsWith('base64://')) {
+    base64 = file.slice(9)
+  } else if (/^http(s)?:\/\//.test(file)) {
+    let res = await fetch(file)
+    if (!res.ok) {
+      throw new Error(`请求错误！状态码: ${res.status}`)
+    } else {
+      base64 = Buffer.from(await res.arrayBuffer()).toString('base64')
+    }
+  } else {
+    throw new Error('上传失败，未知格式的文件')
+  }
+
+  const url = 'https://api.imgbb.com/1/upload'
+  const params = new URLSearchParams()
+  params.append('key', key)
+  params.append('image', base64)
+  if (expiration) params.append('expiration', expiration)
+
+  const res = await fetch(url, {
+    method: 'post',
+    body: params
+  })
+
+  if (res.ok) {
+    const { data } = await res.json()
+    const { width, height, url } = data
+    return { width, height, url: 'https://i0.wp.com/' + url.replace(/^https:\/\//, '') }
+  } else {
+    throw new Error(`HTTP error: ${res.status}`)
+  }
+}
+
+```
+</details>
 
 ## 高阶能力
 

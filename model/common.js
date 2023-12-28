@@ -393,7 +393,7 @@ async function downloadFile (url, destPath, headers = {}, absolute = false) {
 
 function getFile (i) {
   if (i?.url) {
-    if (i.url.includes('gchat.qpic.cn') && !i.url.startsWith('https://')) {
+    if (i?.url?.includes('gchat.qpic.cn') && !i?.url?.startsWith('https://')) {
       i = 'https://' + i.url
     } else {
       i = i.url
@@ -406,7 +406,10 @@ function getFile (i) {
   let type = 'file'
 
   // 检查是否是Buffer类型
-  if (i?.type === 'Buffer' || i instanceof Uint8Array || Buffer.isBuffer(i?.data || i)) {
+  if (i?.type === 'Buffer') {
+    type = 'buffer'
+    file = Buffer.from(i?.data)
+  } else if (i?.type === 'Buffer' || i instanceof Uint8Array || Buffer.isBuffer(i?.data || i)) {
     type = 'buffer'
     file = i?.data || i
   } else if (i instanceof fs.ReadStream || i?.path) {
