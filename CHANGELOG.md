@@ -1,3 +1,25 @@
+# 1.4.5
+
+* 优化`link`转换`二维码`渲染
+* Shamrock：优化适配器
+* QQBot：添加自定义按钮支持，插件开发者和用户均可自行开发。
+* QQBot：全局MD支持非通用模板，只需要有图文模板即可使用全局MD
+* QQBot：全局`Markdown`支持自定义按钮
+* QQBot：适配`TRSS-Yunzai`全局`markdown`通用模板
+* `#设置主人`允许键入用户ID
+* 添加`消息、图片发送次数计算`，搭配shamrock版本的椰奶使用
+* 修正`ComWeChat`适配器名称
+* Shamrock：修改加载逻辑和支持事件动态加载
+* 添加适配器`wechat4u` => `网页版微信`
+* Shamrock：添加指令`#清除缓存`
+* Shamrock：添加指令`#解除全部禁言`
+* 添加功能 #禁用主人 #启用主人 **@batvbs** 
+* Shamrock：修复群聊戳一戳(上游删了原先接口...)
+* Shamrock：`#群打卡` **@ikechan8370** 
+* 标准化`package.json`
+* 补充`getGroupList`、`getFriendMap`、`getGuildList`
+* QQ频道统一bot前缀为`qg_`
+
 # 1.4.4
 
 * 添加`#shamrock版本`、`#shamrock(测试)安装包`**@ikechan8370** 
