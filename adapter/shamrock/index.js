@@ -61,12 +61,6 @@ class Shamrock {
     }
   }
 
-  /** 消息事件 */
-  async message (data) {
-    /** 转置消息后给喵崽 */
-    await Bot.emit('message', await this.convertEvent(data))
-  }
-
   /** 自身消息事件 */
   async message_sent (data) {
     data.post_type = 'message'
@@ -102,7 +96,7 @@ class Shamrock {
         } else {
           common.info(this.id, `群消息撤回：[${data.group_id}]${data.operator_id} 撤回 ${data.user_id}的消息 ${data.message_id} `)
         }
-        return await Bot.emit('notice.group', await this.convertEvent(data))
+        break
       case 'group_increase': {
         data.notice_type = 'group'
         let subType = data.sub_type
@@ -121,7 +115,7 @@ class Shamrock {
             }
           }
         }
-        return await this.message(data)
+        break
       }
       case 'group_decrease': {
         data.notice_type = 'group'
@@ -140,7 +134,7 @@ class Shamrock {
             ? `成员[${data.user_id}]被[${data.operator_id}]踢出群聊：[${data.group_id}}]`
             : `成员[${data.user_id}]退出群聊[${data.group_id}}]`)
         }
-        return await this.message(data)
+        break
       }
       case 'group_admin': {
         data.notice_type = 'group'
@@ -170,7 +164,7 @@ class Shamrock {
           }
           Bot[this.id].gml.set(data.group_id, { ...gml })
         }
-        return await this.message(data)
+        break
       }
       case 'group_ban': {
         data.notice_type = 'group'
@@ -191,7 +185,7 @@ class Shamrock {
         }
         // 异步加载或刷新该群的群成员列表以更新禁言时长
         Bot[this.id]._loadGroupMemberList(data.group_id, this.id)
-        return await this.message(data)
+        break
       }
       case 'notify':
         switch (data.sub_type) {
@@ -215,14 +209,14 @@ class Shamrock {
         // const time = Date.now()
         // if (time - pokeCD < 1500) return false
         // pokeCD = time
-        return await this.message(data)
+        break
       case 'friend_add':
         // shamrock暂未实现
-        return await this.message(data)
+        break
       case 'essence': {
         // todo
         common.info(this.id, `群[${data.group_id}]成员[${data.sender_id}]的消息[${data.message_id}]被[${data.operator_id}]${data.sub_type === 'add' ? '设为' : '移除'}精华`)
-        return await this.message(data)
+        break
       }
       case 'group_card': {
         common.info(this.id, `群[${data.group_id}]成员[${data.user_id}]群名片变成为${data.card_new}`)
@@ -231,10 +225,11 @@ class Shamrock {
         user.card = data.card_new
         gml[data.user_id] = user
         Bot[this.id].gml.set(data.group_id, gml)
-        return await this.message(data)
+        break
       }
       default:
     }
+    return await Bot.emit('notice.group', await this.convertEvent(data))
   }
 
   /** 请求事件 */
@@ -249,13 +244,12 @@ class Shamrock {
           // invite
           common.info(this.id, `[${data.user_id}]邀请机器人入群[${data.group_id}]: ${data.tips}`)
         }
-        return await this.message(data)
+        break
       }
       case 'friend': {
         data.sub_type = 'add'
         common.info(this.id, `[${data.user_id}]申请加机器人[${this.id}]好友: ${data.comment}`)
-        return await Bot.emit('request', await this.convertEvent(data))
-        // return await this.message(data)
+        break
       }
     }
     data.post_type = 'request'
@@ -268,15 +262,15 @@ class Shamrock {
           // invite
           common.info(this.id, `[${data.user_id}]邀请机器人入群[${data.group_id}]: ${data.tips}`)
         }
-        return await this.message(data)
+        break
       }
       case 'friend': {
         data.sub_type = 'add'
         common.info(this.id, `[${data.user_id}]申请加机器人[${this.id}]好友: ${data.comment}`)
-        return await Bot.emit('request', await this.convertEvent(data))
-        // return await this.message(data)
+        break
       }
     }
+    return await Bot.emit('request', await this.convertEvent(data))
   }
 
   /** 注册Bot */
