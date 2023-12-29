@@ -447,7 +447,7 @@ let api = {
   },
 
   /**
-  * 上传私聊文件（未实现）
+  * 上传私聊文件
   * @param {string} id - 机器人QQ
   * @param {number} user_id - 对方 QQ 号
   * @param {string} file - 本地文件路径
@@ -690,8 +690,15 @@ let api = {
   * @param {string} raw_message - 发送内容日志
   */
   async send_private_msg (id, user_id, message, raw_message, node) {
+    let user_name
+    try {
+      user_name = Bot[id].fl.get(user_id)?.user_name
+      user_name = user_name ? `[${user_name}(${user_id})]` : `[${user_id}]`
+    } catch {
+      user_name = `[${user_id}]`
+    }
     /** 打印日志 */
-    common.info(id, `[发送好友消息(${user_id})]${raw_message}`)
+    common.info(id, `发送好友消息：${user_name}${raw_message}`)
 
     /** 保存发送记录 */
     if (raw_message.includes('[图片:')) {
@@ -721,8 +728,15 @@ let api = {
   * @param {string} raw_message - 发送内容日志
   */
   async send_group_msg (id, group_id, message, raw_message, node) {
+    let group_name
+    try {
+      group_name = Bot[id].gl.get(group_id)?.group_name
+      group_name = group_name ? `[${group_name}(${group_id})]` : `[${group_id}]`
+    } catch {
+      group_name = `[${group_id}]`
+    }
     /** 打印日志 */
-    common.info(id, `[发送群消息(${group_id})]${raw_message}`)
+    common.info(id, `发送群消息：${group_name}${raw_message}`)
 
     /** 保存发送记录 */
     if (raw_message.includes('[图片:')) {

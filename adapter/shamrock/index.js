@@ -457,7 +457,8 @@ class Shamrock {
     }
 
     if (friendList && typeof friendList === 'object') {
-      for (const i of friendList) {
+      for (let i of friendList) {
+        i.nickname = i.user_name || i.user_displayname || i.user_remark
         /** 给锅巴用 */
         Bot.fl.set(i.user_id, i)
         /** 自身参数 */
@@ -513,6 +514,8 @@ class Shamrock {
       sign: async () => await api.send_group_sign(this.id, group_id),
       /** 音乐分享 */
       shareMusic: async (platform, id) => await this.shareMusic(group_id, platform, id),
+      /** 获取文件下载地址 */
+      getFileUrl: async (fid) => await this.getFileUrl(fid),
       /**
        * 获取聊天历史记录
        * @param msg_id 起始消息的message_id（默认为0，表示从最后一条发言往前）
@@ -543,6 +546,8 @@ class Shamrock {
       makeForwardMsg: async (message) => await this.makeForwardMsg(message),
       getAvatarUrl: (size = 0) => `https://q1.qlogo.cn/g?b=qq&s=${size}&nk=${user_id}`,
       sendFile: async (filePath) => await this.upload_private_file(user_id, filePath),
+      /** 获取文件下载地址 */
+      getFileUrl: async (fid) => await this.getFileUrl(fid),
       /**
        * 获取私聊聊天记录
        * @param msg_id 起始消息的message_id（默认为0，表示从最后一条发言往前）
@@ -607,8 +612,8 @@ class Shamrock {
     /** 先传到shamrock... */
     const base64 = 'base64://' + fs.readFileSync(filePath).toString('base64')
     const { file } = await api.download_file(this.id, base64)
-    let name = path.extname(filePath)
-    return await api.upload_group_file(this.id, group_id, file, name.replace(/^\./, ''))
+    const name = path.basename(filePath) || Date.now() + path.extname(filePath)
+    return await api.upload_group_file(this.id, group_id, file, name)
   }
 
   /** 上传好友文件 */
@@ -617,8 +622,13 @@ class Shamrock {
     /** 先传到shamrock... */
     const base64 = 'base64://' + fs.readFileSync(filePath).toString('base64')
     const { file } = await api.download_file(this.id, base64)
-    let name = path.basename(filePath)
-    return await api.upload_private_file(this.id, user_id, file, name.replace(/^\./, ''))
+    const name = path.basename(filePath) || Date.now() + path.extname(filePath)
+    return await api.upload_private_file(this.id, user_id, file, name)
+  }
+
+  /** 获取文件下载链接 */
+  async getFileUrl () {
+    return logger.warn('暂未实现，请先使用 [e.file]')
   }
 
   /** 音乐分享 */
@@ -870,8 +880,8 @@ class Shamrock {
         /** 表情 */
         case 'face':
           message.push({ type: 'face', ...i.data })
-          raw_message.push(faceMap[Number(i.data.id)])
-          log_message.push(faceMap[Number(i.data.id)])
+          raw_message.push(`[${faceMap[Number(i.data.id)]}]`)
+          log_message.push(`[${faceMap[Number(i.data.id)]}]`)
           ToString.push(`{face:${i.data.id}}`)
           break
         /** 回复 */
@@ -882,8 +892,8 @@ class Shamrock {
               let qq = Number(source.sender.user_id)
               let text = source.sender.nickname
               message.push({ type: 'at', qq, text })
-              raw_message.push(`{at:${qq}}`)
-              log_message.push(`[回复] @${text}`)
+              raw_message.push(`@${text}`)
+              log_message.push(`[回复] [@${text}:${qq}]`)
             }
           }
           break
@@ -910,7 +920,7 @@ class Shamrock {
           break
         /** 文件 */
         case 'file':
-          file = i.data
+          file = { ...i.data, fid: i.data.id }
           message.push({ type: 'file', ...i.data, fid: i.data.id })
           raw_message.push('[文件]')
           log_message.push(`[视频:${i.data?.url || i.data.file}]`)
@@ -978,8 +988,8 @@ class Shamrock {
         /** 戳一戳 */
         case 'poke':
           message.push({ type: 'poke', ...i.data })
-          raw_message.push(pokeMap[Number(i.data.id)])
-          log_message.push(pokeMap[Number(i.data.id)])
+          raw_message.push(`[${pokeMap[Number(i.data.id)]}]`)
+          log_message.push(`[${pokeMap[Number(i.data.id)]}]`)
           ToString.push(`{poke:${i.data.id}}`)
           break
         /** 戳一戳(双击头像) */
@@ -1160,7 +1170,7 @@ class Shamrock {
           break
         case 'face':
           message.push({ type: 'face', data: { id: Number(i.id) } })
-          raw_message.push(`${faceMap[Number(i.id)]}]`)
+          raw_message.push(`[${faceMap[Number(i.id)]}]`)
           break
         case 'text':
           if (typeof value !== 'number' && !i.text.trim()) break
@@ -1221,7 +1231,7 @@ class Shamrock {
           break
         case 'poke':
           message.push({ type: 'poke', data: { type: i.id, id: 0, strength: i?.strength || 0 } })
-          raw_message.push(pokeMap[Number(i.id)] || `[戳一戳:${i.id}]`)
+          raw_message.push(`[${pokeMap[Number(i.id)]}]` || `[戳一戳:${i.id}]`)
           break
         case 'touch':
           message.push({ type: 'touch', data: { id: i.id } })
