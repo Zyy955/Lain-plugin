@@ -685,25 +685,15 @@ class Shamrock {
     }
 
     if (msg.length) {
-      let { message, raw_message } = await this.getShamrock(msg)
-      /** 重新处理文本 */
-      const msgNew = []
-      const messageNew = []
-      message.forEach(i => {
-        if (i.type !== 'text') {
-          messageNew.push(i)
-        } else {
-          msgNew.push(i.data.text)
+      for (let i of msg) {
+        let { message, raw_message } = await this.getShamrock(i)
+
+        try {
+          const { message_id } = await api.send_private_msg(this.id, this.id, message, raw_message)
+          makeForwardMsg.message.push({ type: 'node', data: { id: message_id } })
+        } catch (err) {
+          common.error(this.id, err)
         }
-      })
-
-      if (msgNew.length) messageNew.push({ type: 'text', data: { text: msgNew.join('\n\n').trim() } })
-
-      try {
-        const { message_id } = await api.send_private_msg(this.id, this.id, messageNew, raw_message)
-        makeForwardMsg.message.push({ type: 'node', data: { id: message_id } })
-      } catch (err) {
-        common.error(this.id, err)
       }
     }
     return makeForwardMsg
