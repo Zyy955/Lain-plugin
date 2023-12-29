@@ -1,6 +1,7 @@
 import chalk from 'chalk'
 import crypto from 'crypto'
 import fs from 'fs'
+import get_urls from 'get-urls'
 import fetch, { Blob, FormData } from 'node-fetch'
 import path from 'path'
 import puppeteer from '../../../lib/puppeteer/puppeteer.js'
@@ -146,8 +147,8 @@ function array (data) {
       ? [{ type: 'text', text: i }]
       : Array.isArray(i)
         ? [].concat(...i.map(format => (typeof format === 'string'
-          ? [{ type: 'text', text: format }]
-          : typeof format === 'object' && format !== null ? [format] : [])))
+            ? [{ type: 'text', text: format }]
+            : typeof format === 'object' && format !== null ? [format] : [])))
         : typeof i === 'object' && i !== null ? [i] : []
     )))
   } else if (data instanceof fs.ReadStream) {
@@ -306,15 +307,33 @@ async function uploadQQ (file, uin = Bot.uin) {
 
 /**
 * 传入字符串 提取url 返回数组
-* @param url
+* @param {string} url 传入字符串，提取出所有url
+* @param {array} exclude - 排除的url
 */
-async function getUrls (url) {
+function getUrls (url, exclude = []) {
   let urls = []
   /** 中文不符合url规范 */
   url = url.replace(/[\u4e00-\u9fa5]/g, '|')
-  const get_urls = (await import('get-urls')).default
   try {
-    urls = [...get_urls(url, { normalizeProtocol: false, stripWWW: false, removeQueryParameters: false })]
+    urls = [...get_urls(url, {
+      exclude,
+      /** 去除 WWW */
+      stripWWW: false,
+      /** 规范化协议 */
+      normalizeProtocol: false,
+      /** 移除查询参数 */
+      removeQueryParameters: false,
+      /** 移除唯一斜杠 */
+      removeSingleSlash: false,
+      /** 查询参数排序 */
+      sortQueryParameters: false,
+      /** 去除认证信息 */
+      stripAuthentication: false,
+      /** 去除文本片段 */
+      stripTextFragment: false,
+      /** 移除末尾斜杠 */
+      removeTrailingSlash: false
+    })]
   } catch {
     log('Lain-plugin', '没有安装 get-urls 模块，建议执行pnpm install -P 进行安装使用更精准的替换url')
     const urlRegex = /(https?:\/\/)?(([0-9a-z.-]+\.[a-z]+)|(([0-9]{1,3}\.){3}[0-9]{1,3}))(:[0-9]+)?(\/[0-9a-z%/.\-_#]*)?(\?[0-9a-z=&%_\-.]*)?(\\#[0-9a-z=&%_\\-]*)?/ig
@@ -336,6 +355,20 @@ async function rendering (content, error) {
     tplFile: './plugins/Lain-plugin/resources/index.html'
   }
   const msg = await puppeteer.screenshot('Lain-plugin/Lain-plugin', data)
+  return msg.file
+}
+
+/** 通用渲染 */
+async function Rending (data, _path) {
+  const name = path.parse(_path).name
+  data = {
+    ...data,
+    saveId: name,
+    adapter: Bot.lain.adapter,
+    _plugin: 'Lain-plugin',
+    tplFile: `./plugins/Lain-plugin/resources/${_path}`
+  }
+  const msg = await puppeteer.screenshot(`Lain-plugin/${name}`, data)
   return msg.file
 }
 
@@ -507,5 +540,6 @@ export default {
   mkdirs,
   getFile,
   recvMsg,
-  MsgTotal
+  MsgTotal,
+  Rending
 }

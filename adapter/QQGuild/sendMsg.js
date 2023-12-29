@@ -1,6 +1,6 @@
 import fs from 'fs'
 import lodash from 'lodash'
-import qrcode from 'qrcode'
+import QrCode from 'qrcode'
 import fetch, { FormData, Blob } from 'node-fetch'
 
 import common from '../../model/common.js'
@@ -101,46 +101,35 @@ export default class SendMsg {
   /** 处理URL */
   async HandleURL (msg) {
     if (typeof msg !== 'string') return msg
-    /** 白名单url */
-    const whitelist_Url = Bot.lain.cfg.whitelist_Url
-
     /** 需要处理的url */
-    let urls = await common.getUrls(msg) || []
+    let urls = Bot.getUrls(msg, Bot.lain.cfg.whitelist_Url)
 
-    if (urls.length > 0) {
-      /** 检查url是否包含在白名单中的任何一个url */
-      urls = urls.filter(url => {
-        return !whitelist_Url.some(whitelistUrl => url.includes(whitelistUrl))
-      })
-
-      let promises = urls.map(i => {
-        return new Promise((resolve, reject) => {
-          common.info('QQ频道', `url替换：${i}`, 'mark')
-          qrcode.toBuffer(i, {
-            errorCorrectionLevel: 'H',
-            type: 'png',
-            margin: 4,
-            text: i
-          }, async (err, buffer) => {
-            if (err) reject(err)
-            const base64 = 'base64://' + buffer.toString('base64')
-            const Uint8Array = await common.rendering(base64, i)
-            const Api_msg = { content: '', type: 'file_image', image: Uint8Array, log: '{image：base64://...}' }
-            /** 转换的二维码连接是否撤回 */
-            const qr = Number(Bot.lain.cfg.recallQR) || 0
-            /** 构建请求参数、打印日志 */
-            const SendMsg = await this.Construct_data(Api_msg, false)
-            await this.SendMsg(SendMsg, qr)
-            msg = msg.replace(i, '[链接(请扫码查看)]')
-            msg = msg.replace(i.replace(/^http:\/\//g, ''), '[链接(请扫码查看)]')
-            msg = msg.replace(i.replace(/^https:\/\//g, ''), '[链接(请扫码查看)]')
-            resolve()
-          })
+    let promises = urls.map(link => {
+      return new Promise((resolve, reject) => {
+        common.info('QQ频道', `url替换：${link}`, 'mark')
+        QrCode.toBuffer(link, {
+          errorCorrectionLevel: 'H',
+          type: 'png',
+          margin: 4,
+          text: link
+        }, async (err, buffer) => {
+          if (err) reject(err)
+          const base64 = 'base64://' + buffer.toString('base64')
+          const Uint8Array = await common.Rending({ base64, link }, 'QRCode/QRCode.html')
+          const Api_msg = { content: '', type: 'file_image', image: Uint8Array, log: '{image：base64://...}' }
+          /** 转换的二维码连接是否撤回 */
+          const qr = Number(Bot.lain.cfg.recallQR) || 0
+          /** 构建请求参数、打印日志 */
+          const SendMsg = await this.Construct_data(Api_msg, false)
+          await this.SendMsg(SendMsg, qr)
+          msg = msg.replace(link, '[链接(请扫码查看)]')
+          msg = msg.replace(link.replace(/^http:\/\//g, ''), '[链接(请扫码查看)]')
+          msg = msg.replace(link.replace(/^https:\/\//g, ''), '[链接(请扫码查看)]')
+          resolve()
         })
       })
-      await Promise.all(promises)
-      return msg
-    }
+    })
+    await Promise.all(promises)
     return msg
   }
 

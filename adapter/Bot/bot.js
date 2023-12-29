@@ -1,7 +1,8 @@
 // 提供全局变量供外部调用
-import fs from 'fs'
-import sizeOf from 'image-size'
 import crypto from 'crypto'
+import fs from 'fs'
+import get_urls from 'get-urls'
+import sizeOf from 'image-size'
 import fetch from 'node-fetch'
 import common from '../../model/common.js'
 
@@ -216,4 +217,35 @@ Bot.toType = function (i) {
   }
 
   return { type, file }
+}
+
+/**
+* 传入字符串 提取url 返回数组
+* @param {string} url 传入字符串，提取出所有url
+* @param {array} exclude - 可选，需使用请传入数组，数组内为排除的url，即不返回数组内相近的url
+*/
+Bot.getUrls = function (url, exclude = []) {
+  let urls = []
+  /** 中文不符合url规范 */
+  url = url.replace(/[\u4e00-\u9fa5]/g, '|')
+  urls = get_urls(url, {
+    exclude,
+    /** 去除 WWW */
+    stripWWW: false,
+    /** 规范化协议 */
+    normalizeProtocol: false,
+    /** 移除查询参数 */
+    removeQueryParameters: false,
+    /** 移除唯一斜杠 */
+    removeSingleSlash: false,
+    /** 查询参数排序 */
+    sortQueryParameters: false,
+    /** 去除认证信息 */
+    stripAuthentication: false,
+    /** 去除文本片段 */
+    stripTextFragment: false,
+    /** 移除末尾斜杠 */
+    removeTrailingSlash: false
+  })
+  return urls
 }
