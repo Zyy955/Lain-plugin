@@ -359,7 +359,7 @@ export default class message {
   /** 处理日志 */
   async log (e) {
     let group_name = e.guild_name + '-私信'
-    group_name = group_name || ''
+    group_name = e.message_type === 'group' ? e.group_name : ''
     return common.info(this.id, `频道消息：[${group_name}，${e.sender?.card || e.sender?.nickname}(${e.user_id})] ${e.raw_message}`)
   }
 

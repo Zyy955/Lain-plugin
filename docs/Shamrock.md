@@ -45,7 +45,9 @@
 - [√] 进退群、群撤回、禁言等事件
 - [√] cookie(`Bot[BotQQ号].cookies`)和bkn(`Bot[BotQQ号].bkn`)
 - [ ] OCR
-- [ ] 查看群荣誉、群系统消息、群精华消息
-- [ ] 发送天气、音乐、位置和分享卡片
+- [√] 查看群荣誉、群系统消息、群精华消息
+- [√] 发送天气、音乐、位置和分享卡片
 - [ ] 处理群申请和好友申请
-- [ ] 上传和发送文件
+- [√] 上传和发送文件
+
+如需使用`yenai-plugin`，请使用为`shamrock`专门适配的椰奶：[yenai-plugin](https://github.com/yeyang52/yenai-plugin)
