@@ -1189,6 +1189,8 @@ class Shamrock {
           break
         case 'video':
           try {
+            /** 笨比复读! */
+            if (i?.url) i.file = i.url
             /** 视频文件需要先上传到手机 */
             const { file } = await api.download_file(this.id, `base64://${await Bot.Base64(i.file)}`)
             message.push({ type: 'video', data: { file: `file://${file}` } })
@@ -1201,9 +1203,11 @@ class Shamrock {
           break
         case 'image':
           try {
+            /** 笨比复读! */
+            if (i?.url) i.file = i.url
             let file = await Bot.Base64(i.file, { http: true })
-            /** 非链接需要先上传到手机 */
-            if (!/^http:\/\//.test(file)) {
+            /** 判断是否为http */
+            if (!/^http(s)?:\/\//.test(file)) {
               file = `base64://${file}`
               raw_message.push('[图片:base64://...]')
             } else {
