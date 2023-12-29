@@ -49,11 +49,11 @@ class Shamrock {
       /** 生命周期 */
       case 'lifecycle':
         this.LoadBot()
-        common.info(this.id, `[${this.version}，${this.QQVersion}] QQ ${this.id} 建立连接成功，正在加载资源中`)
+        common.info('Lain-plugin', `[${this.version}，${this.QQVersion}] QQ ${this.id} 建立连接成功，正在加载资源中`)
         break
       /** 心跳 */
       case 'heartbeat':
-        common.debug(this.id, `[${this.version}，${this.QQVersion}] QQ ${this.id} 收到心跳：${data.status['qq.status']}`)
+        common.debug('Lain-plugin', `[${this.version}，${this.QQVersion}] QQ ${this.id} 收到心跳：${data.status['qq.status']}`)
         break
       default:
         logger.error(`[Shamrock][未知事件] ${JSON.stringify(data)}`)
@@ -854,12 +854,12 @@ class Shamrock {
             let qq = i.data.qq
             ToString.push(`{at:${qq}}`)
             let groupMemberList = Bot[this.id].gml.get(group_id)?.[qq]
-            let at = groupMemberList?.nickname || groupMemberList?.card
-            raw_message.push(`[@${at ? at + `,${qq}` : qq}]`)
-            log_message.push(`[@${at ? at + `,${qq}` : qq}]`)
+            let at = groupMemberList?.nickname || groupMemberList?.card || qq
+            raw_message.push(`@${at}`)
+            log_message.push(at == qq ? `@${qq}` : `[@${at}:${qq}]`)
           } catch (err) {
-            raw_message.push(`[@${i.data.qq}]`)
-            log_message.push(`[@${i.data.qq}]`)
+            raw_message.push(`@${i.data.qq}`)
+            log_message.push(`@${i.data.qq}`)
           }
           break
         case 'text':
