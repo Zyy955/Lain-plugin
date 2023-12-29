@@ -536,7 +536,8 @@ export default class StartQQBot {
   async reply (e, msg) {
     let res
     const allMsg = []
-    let { message, image } = await this.message(msg)
+    let sendMsg = await this.message(msg)
+    let { message, image } = sendMsg
 
     if (e.bot.config?.markdown) {
       if (e.bot.config?.super_markdown) {
@@ -560,6 +561,17 @@ export default class StartQQBot {
       } catch (error) {
         common.error(e.self_id, JSON.stringify(error))
         let data = error?.response?.data
+        /** 全局模板的情况下发送失败转为发送普通消息 */
+        if (e.bot.config?.markdown) {
+          logger.mark('转普通消息发送')
+          try {
+            res = await e.sendMsg.call(e.data, i)
+          } catch (err) {
+            data = error?.response?.data || err
+            common.error(e.self_id, '你没救了少年...', err)
+          }
+        }
+
         if (data) {
           data = `\n发送消息失败：\ncode:：${error.response.data.code}\nmessage：${error.response.data.message}`
         } else {
