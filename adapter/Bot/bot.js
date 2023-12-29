@@ -247,5 +247,5 @@ Bot.getUrls = function (url, exclude = []) {
     /** 移除末尾斜杠 */
     removeTrailingSlash: false
   })
-  return urls
+  return [...urls]
 }
