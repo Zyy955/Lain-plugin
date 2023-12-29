@@ -61,6 +61,12 @@ class Shamrock {
     }
   }
 
+  /** 消息事件 */
+  async message (data) {
+    /** 转置消息后给喵崽 */
+    await Bot.emit('message', await this.convertEvent(data))
+  }
+
   /** 自身消息事件 */
   async message_sent (data) {
     data.post_type = 'message'

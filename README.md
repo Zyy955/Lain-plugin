@@ -104,3 +104,4 @@ pnpm config set sharp_binary_host "https://npmmirror.com/mirrors/sharp" && pnpm 
 - [ComWeChat](https://github.com/JustUndertaker/ComWeChatBotClient)
 - [wechat4u](https://github.com/nodeWechat/wechat4u/blob/master/run-core.js)
 - [qq-group-bot](https://github.com/lc-cn/qq-group-bot)
+- [QQBot按钮库](https://gitee.com/lava081/button)
