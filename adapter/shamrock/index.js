@@ -3,7 +3,7 @@ import path from 'path'
 import { WebSocketServer } from 'ws'
 import common from '../../model/common.js'
 import api from './api.js'
-import { faceMap, pokeMap } from './face.js'
+import { faceMap, pokeMap } from '../../model/shamrock/face.js'
 
 class Shamrock {
   constructor (bot, request) {
