@@ -16,10 +16,12 @@ import common from '../../model/common.js'
   - { buffer:true } 原样返回Buffer
 * @param {Promise<Buffer>} Buffer
 */
-async function bufferToFile (file, data) {
+Bot.Buffer = async function (file, data) {
   if (Buffer.isBuffer(file) || file instanceof Uint8Array) {
     if (data?.buffer) return file
     return file
+  } else if (file instanceof fs.ReadStream) {
+    return await Bot.Stream(file)
   } else if (fs.existsSync(file.replace(/^file:\/\//, ''))) {
     if (data?.file) return file
     return fs.readFileSync(file.replace(/^file:\/\//, ''))
@@ -53,10 +55,12 @@ async function bufferToFile (file, data) {
   - { buffer:true } 原样返回Buffer
  * @returns {Promise<string>} base64字符串
  */
-async function Base64ToFile (file, data) {
+Bot.Base64 = async function (file, data) {
   if (Buffer.isBuffer(file) || file instanceof Uint8Array) {
     if (data?.buffer) return file
     return file.toString('base64')
+  } else if (file instanceof fs.ReadStream) {
+    return await Bot.Stream(file, { base: true })
   } else if (fs.existsSync(file.replace(/^file:\/\//, ''))) {
     if (data?.file) return file
     return fs.readFileSync(file.replace(/^file:\/\//, '')).toString('base64')
@@ -80,6 +84,23 @@ async function Base64ToFile (file, data) {
 }
 
 /**
+ * 传入可读流，返回buffer、base64://
+ * @param {ReadStream} file - 可读流
+ * @param {object} data - 可选，默认返回buffer
+  - { buffer:true } 返回buffer
+  - { base:true } 返回Base://
+ * @returns {Promise<string|Buffer>} buffer或base64字符串
+ */
+Bot.Stream = async function (file, data) {
+  return new Promise((resolve, reject) => {
+    const chunks = []
+    file.on('data', (chunk) => chunks.push(chunk))
+    file.on('end', () => data?.base ? resolve(Buffer.concat(chunks).toString('base64')) : resolve(Buffer.concat(chunks)))
+    file.on('error', (err) => reject(err))
+  })
+}
+
+/**
 * QQ图床
 * 支持http://、file://、base64://、buffer
 * @param file  * 处理传入的图片文件，转为url
@@ -90,7 +111,7 @@ async function Base64ToFile (file, data) {
 *   - {string} url - QQ图床url
 *   - {string} md5 - 文件的MD5哈希值
 */
-async function uploadQQ (file, uin = Bot.uin) {
+Bot.uploadQQ = async function (file, uin = Bot.uin) {
   uin = Number(uin)
   const buffer = await Bot.Buffer(file)
   try {
@@ -114,7 +135,7 @@ async function uploadQQ (file, uin = Bot.uin) {
 *   - {string} url - 服务器后的公网URL
 *   - {string} md5 - 文件的MD5哈希值
 */
-async function FileToUrl (file, type = 'image') {
+Bot.FileToUrl = async function (file, type = 'image') {
   const buffer = await Bot.Buffer(file)
   const time = `${Date.now()}.${type === 'image' ? 'jpg' : (type === 'audio' ? 'mp3' : 'mp4')}`
   fs.writeFileSync(process.cwd() + `/plugins/Lain-plugin/resources/QQBotApi/${time}`, buffer)
@@ -138,7 +159,7 @@ async function FileToUrl (file, type = 'image') {
 *
 * error为无法判断类型，直接返回i.file
 */
-function toType (i) {
+Bot.toType = function (i) {
   if (i?.url) {
     if (i?.url?.includes('gchat.qpic.cn') && !i?.url?.startsWith('https://')) {
       i = 'https://' + i.url
@@ -196,10 +217,3 @@ function toType (i) {
 
   return { type, file }
 }
-
-/** 赋值给全局Bot */
-Bot.toType = toType
-Bot.Buffer = bufferToFile
-Bot.Base64 = Base64ToFile
-Bot.uploadQQ = uploadQQ
-Bot.FileToUrl = FileToUrl
