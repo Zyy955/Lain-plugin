@@ -43,7 +43,7 @@
       z-index: -1;
     }
 
-    .message {
+    .QRCode {
       width: auto;
       min-height: 0;
       margin: 15px;
@@ -59,7 +59,7 @@
       overflow: hidden;
     }
 
-    .message img {
+    .QRCode img {
       width: 100%;
       height: auto;
       display: block;
@@ -96,8 +96,8 @@
 
 </head>
 
-<body>
-  <div class="link">{{@link}}</div>
-  <div class="message"> <img src='data:image/png;base64,{{@base64.replace(/^base64:\/\//,"")}}' alt="QRCode"> </div>
+<body>  
+  <div class="link"><b>初始链接：</b><br>{{@link}}</div>
+  <div class="QRCode"> <img src='data:image/png;base64,{{@base64.replace(/^base64:\/\//,"")}}' alt="QRCode"> </div>
   <div class="author"><b>Miao-Yunzai & Lain-plugin {{@adapter.lain.version.version}}</b></div>
 </body>
