@@ -886,6 +886,7 @@ class Shamrock {
           message.push({ type: 'text', text: i.data.text })
           raw_message.push(i.data.text)
           log_message.push(i.data.text)
+          ToString.push(i.data.text)
           break
         /** 表情 */
         case 'face':
