@@ -64,7 +64,7 @@ class Shamrock {
   /** 消息事件 */
   async message (data) {
     /** 转置消息后给喵崽 */
-    await Bot.emit('message', await this.convertEvent(data))
+    await Bot.emit('message', await this.ICQQEvent(data))
   }
 
   /** 自身消息事件 */
@@ -74,7 +74,7 @@ class Shamrock {
     await common.sleep(1500)
     if (await redis.get(`Shamrock:${this.id}:${data.message_id}`)) return
     /** 转置消息后给喵崽 */
-    await Bot.emit('message', await this.convertEvent(data))
+    await Bot.emit('message', await this.ICQQEvent(data))
   }
 
   /** 通知事件 */
@@ -235,7 +235,7 @@ class Shamrock {
       }
       default:
     }
-    return await Bot.emit('notice.group', await this.convertEvent(data))
+    return await Bot.emit('notice.group', await this.ICQQEvent(data))
   }
 
   /** 请求事件 */
@@ -276,7 +276,7 @@ class Shamrock {
         break
       }
     }
-    return await Bot.emit('request', await this.convertEvent(data))
+    return await Bot.emit('request', await this.ICQQEvent(data))
   }
 
   /** 注册Bot */
@@ -720,37 +720,77 @@ class Shamrock {
   }
 
   /** 转换消息为ICQQ格式 */
-  async convertEvent (data) {
-    const { user_id, group_id, message_type, message_id, sender } = data
-
-    /** 判断是否群聊 */
-    let isGroup = true
-
+  async ICQQEvent (data) {
+    const { post_type, group_id, user_id, message_type, message_id, sender } = data
     /** 初始化e */
     let e = data
 
-    if (data.post_type === 'message' && group_id) {
-      /** 处理message，引用消息 */
+    /** 消息事件 */
+    const messagePostType = async function () {
+      /** 处理message、引用消息、toString、raw_message */
       const { message, ToString, raw_message, log_message, source, file } = await this.getMessage(data.message, group_id)
+
+      /** 通用数据 */
       e.message = message
-      e.toString = () => ToString
       e.raw_message = raw_message
       e.log_message = log_message
-      /** 特殊处理文件 */
+      e.toString = () => ToString
       if (file) e.file = file
-      /** 引用消息 */
       if (source) e.source = source
-    } else if (e.post_type === 'notice' && e.sub_type === 'poke') {
+
+      /** 群消息 */
+      if (message_type === 'group') {
+        let group_name
+        try {
+          group_name = Bot[this.id].gl.get(group_id).group_name
+          group_name = group_name ? `${group_name}(${group_id})` : group_id
+        } catch {
+          group_name = group_id
+        }
+        e.log_message && common.info(this.id, `群消息：[${group_name || group_id}，${sender?.nickname || sender?.card}(${user_id})] ${e.log_message}`)
+        /** 手动构建member */
+        e.member = {
+          info: {
+            group_id,
+            user_id,
+            nickname: sender?.card,
+            last_sent_time: data?.time
+          },
+          card: sender?.card,
+          nickname: sender?.nickname,
+          group_id,
+          is_admin: sender?.role === 'admin' || false,
+          is_owner: sender?.role === 'owner' || false,
+          /** 获取头像 */
+          getAvatarUrl: (size = 0) => {
+            return `https://q1.qlogo.cn/g?b=qq&s=${size}&nk=${user_id}`
+          },
+          /** 禁言 */
+          mute: async (time) => {
+            return await api.set_group_ban(this.id, group_id, user_id, time)
+          }
+        }
+        e.group = { ...this.pickGroup(group_id) }
+      } else {
+        /** 私聊消息 */
+        e.log_message && common.info(this.id, `好友消息：[${sender?.nickname || sender?.card}(${user_id})] ${e.log_message}`)
+        e.friend = { ...this.pickFriend(user_id) }
+      }
+    }
+    /** 通知事件 */
+    const noticePostType = async function () {
       e.action = '戳了戳'
       e.raw_message = `${e.operator_id} 戳了戳 ${e.user_id}`
       /** 私聊字段 */
       if (e?.sender_id) {
-        isGroup = false
         e.notice_type = 'private'
       } else {
         e.notice_type = 'group'
       }
-    } else if (e.post_type === 'request') {
+    }
+
+    /** 请求事件 */
+    const requestPostType = async function () {
       switch (e.request_type) {
         case 'friend': {
           e.approve = async (approve = true) => {
@@ -765,35 +805,34 @@ class Shamrock {
         }
         case 'group': {
           e.approve = async (approve = true) => {
-            if (e.flag) {
-              return await api.set_group_add_request(this.id, e.flag, e.sub_type, approve)
+            if (e.flag) return await api.set_group_add_request(this.id, e.flag, e.sub_type, approve)
+            if (e.sub_type === 'add') {
+              common.error(this.id, '处理入群申请失败：缺少flag参数')
             } else {
-              if (e.sub_type === 'add') {
-                common.error(this.id, '处理入群申请失败：缺少flag参数')
-              } else {
-                // invite
-                common.error(this.id, '处理邀请机器人入群失败：缺少flag参数')
-              }
-              return false
+              // invite
+              common.error(this.id, '处理邀请机器人入群失败：缺少flag参数')
             }
+            return false
           }
           break
         }
         default:
       }
     }
-    let group_name = group_id
-    /** 先打印日志 */
-    if (message_type === 'private') {
-      isGroup = false
-      e.log_message && common.info(this.id, `好友消息：[${sender?.nickname || sender?.card}(${user_id})] ${e.log_message}`)
-    } else {
-      try {
-        group_name = Bot[this.id].gl.get(group_id)?.group_name || group_id
-      } catch {
-        group_name = group_id
-      }
-      e.log_message && common.info(this.id, `群消息：[${group_name}，${sender?.nickname || sender?.card}(${user_id})] ${e.log_message}`)
+
+    switch (post_type) {
+      /** 消息事件 */
+      case 'message':
+        await messagePostType.call(this)
+        break
+      /** 通知事件 */
+      case 'notice':
+        await noticePostType.call(this)
+        break
+      /** 请求事件 */
+      case 'request':
+        await requestPostType.call(this)
+        break
     }
 
     /** 快速撤回 */
@@ -802,35 +841,6 @@ class Shamrock {
     e.reply = async (msg, quote) => await this.sendReplyMsg(e, group_id || user_id, msg, quote)
     /** 获取对应用户头像 */
     e.getAvatarUrl = (size = 0) => `https://q1.qlogo.cn/g?b=qq&s=${size}&nk=${this.id}`
-
-    /** 构建场景对应的方法 */
-    if (isGroup) {
-      /** 手动构建member */
-      e.member = {
-        info: {
-          group_id: data?.group_id,
-          user_id: data?.user_id,
-          nickname: data?.sender?.card,
-          last_sent_time: data?.time
-        },
-        card: data?.sender?.card,
-        nickname: data?.sender?.nickname,
-        group_id: data?.group_id,
-        is_admin: data?.sender?.role === 'admin' || false,
-        is_owner: data?.sender?.role === 'owner' || false,
-        /** 获取头像 */
-        getAvatarUrl: (size = 0) => {
-          return `https://q1.qlogo.cn/g?b=qq&s=${size}&nk=${user_id}`
-        },
-        /** 椰奶禁言 */
-        mute: async (time) => {
-          return await api.set_group_ban(this.id, group_id, user_id, time)
-        }
-      }
-      e.group = { ...this.pickGroup(group_id) }
-    } else {
-      e.friend = { ...this.pickFriend(user_id) }
-    }
 
     /** 添加适配器标识 */
     e.adapter = 'shamrock'
