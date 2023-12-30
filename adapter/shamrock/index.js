@@ -235,7 +235,7 @@ class Shamrock {
       }
       default:
     }
-    return await Bot.emit('notice.group', await this.ICQQEvent(data))
+    return await Bot.emit('notice', await this.ICQQEvent(data))
   }
 
   /** 请求事件 */
@@ -784,8 +784,10 @@ class Shamrock {
       /** 私聊字段 */
       if (e?.sender_id) {
         e.notice_type = 'private'
+        e.group = { ...this.pickGroup(group_id) }
       } else {
         e.notice_type = 'group'
+        e.friend = { ...this.pickFriend(user_id) }
       }
     }
 
