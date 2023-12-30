@@ -891,8 +891,8 @@ class Shamrock {
         /** 表情 */
         case 'face':
           message.push({ type: 'face', ...i.data })
-          raw_message.push(`[${faceMap[Number(i.data.id)]}]`)
-          log_message.push(`[${faceMap[Number(i.data.id)]}]`)
+          raw_message.push(`[${faceMap[Number(i.data.id)] || '动画表情'}]`)
+          log_message.push(`[${faceMap[Number(i.data.id)] || `动画表情:${i.data.id}`}]`)
           ToString.push(`{face:${i.data.id}}`)
           break
         /** 回复 */
