@@ -27,10 +27,10 @@ class Shamrock {
 
   /** 收到请求 */
   async event (data) {
-    /** debug日志 */
-    common.debug(this.id, '[ws] received -> ', data)
     /** 解析得到的JSON */
     data = JSON.parse(data)
+    /** debug日志 */
+    common.debug(this.id, '[ws] received -> ', JSON.stringify(data))
     /** 带echo事件为主动请求得到的响应，另外保存 */
     if (data?.echo) return Bot.echo.set(data.echo, data)
     try {
