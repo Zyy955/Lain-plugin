@@ -5,6 +5,10 @@
   "github": "https://github.com/Zyy955/Lain-plugin",
   "gitee": "https://gitee.com/Zyy955/Lain-plugin",
   "type": "module",
+  "scripts": {
+    "commitmsg": "validate-commit-msg",
+    "log": "conventional-changelog -p angular -i CHANGELOG.md -s -r 1"
+  },
   "adapter": {
     "QQGuild": "0.5.2",
     "ComWeChat": "0.2.3",
@@ -14,16 +18,26 @@
     "WeXin": "0.0.3"
   },
   "dependencies": {
+    "axios": "^1.6.2",
+    "express": "^4.18.2",
+    "file-type": "^18.7.0",
+    "get-urls": "^12.0.1",
+    "qq-group-bot": "^1.0.1",
     "qq-guild-bot": "^2.9.5",
     "qrcode": "^1.5.3",
-    "axios": "^1.6.2",
     "sharp": "^0.33.0",
-    "ws": "^8.15.0",
-    "file-type": "^18.7.0",
-    "express": "^4.18.2",
-    "qq-group-bot": "^1.0.1",
     "silk-wasm": "^3.1.0",
-    "get-urls": "^12.0.1",
-    "wechat4u": "^0.7.14"
+    "wechat4u": "^0.7.14",
+    "ws": "^8.15.0"
+  },
+  "devDependencies": {
+    "cz-conventional-changelog": "^3.3.0",
+    "husky": "^8.0.3",
+    "validate-commit-msg": "^2.14.0"
+  },
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    }
   }
 }
