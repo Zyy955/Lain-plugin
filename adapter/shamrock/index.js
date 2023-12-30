@@ -901,9 +901,9 @@ class Shamrock {
             if (source) {
               let qq = Number(source.sender.user_id)
               let text = source.sender.nickname
-              message.push({ type: 'at', qq, text })
-              raw_message.push(`@${text}`)
-              log_message.push(`[回复] [@${text}:${qq}]`)
+              message.unshift({ type: 'at', qq, text })
+              raw_message.unshift(`@${text}`)
+              log_message.unshift(`[回复] [@${text}:${qq}]`)
             }
           }
           break
@@ -1126,7 +1126,7 @@ class Shamrock {
     let { message, raw_message, node } = await this.getShamrock(msg)
 
     if (quote) {
-      message.push({ type: 'reply', data: { id: e.message_id } })
+      message.unshift({ type: 'reply', data: { id: e.message_id } })
       raw_message = '[回复]' + raw_message
     }
 
