@@ -1,4 +1,4 @@
-![Lain-plugin](https://socialify.git.ci/Zyy955/Lain-plugin/image?description=1&font=KoHo&forks=1&issues=1&language=1&logo=https://cdn.jsdelivr.net/gh/Zyy955/imgs/img/202312120000234.jpg&name=1&owner=1&pattern=Circuit%20Board&pulls=1&stargazers=1&theme=Light)
+![Lain-plugin](https://socialify.git.ci/Zyy955/Lain-plugin/image?description=1&font=KoHo&forks=1&issues=1&language=1&logo=https://cdn.jsdelivr.net/gh/Zyy955/imgs/img/202312120000234.jpg&name=1&owner=1&pattern=Plus&pulls=1&stargazers=1&theme=Light)
 
 ## 简介
 - [Github](https://github.com/Zyy955/Lain-plugin)
