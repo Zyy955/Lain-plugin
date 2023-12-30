@@ -12,15 +12,3 @@ updates:
         prefix: "chore(deps): " # 提交消息的前缀
       reviewers:
         - username: "Zyy955" # 审查人员
-  - package-ecosystem: "npm"
-    directory: "/"
-    schedule:
-      interval: "daily"
-    pull-requests:
-      enabled: true
-      target-branch: "Dev" # 目标分支
-      labels: ["dependencies"] # 为 PR 添加的标签
-      commit-message:
-        prefix: "chore(deps): " # 提交消息的前缀
-      reviewers:
-        - username: "Zyy955" # 审查人员
