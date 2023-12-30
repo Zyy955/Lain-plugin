@@ -1193,7 +1193,7 @@ class Shamrock {
           try {
             let file = await Bot.Base64(i.file, { http: true })
             /** 非链接需要先上传到手机 */
-            if (!/^http:\/\//.test(file)) {
+            if (!/^http(s)?:\/\//.test(file)) {
               const data = await api.download_file(this.id, `base64://${file}`)
               file = `file://${data.file}`
             }
