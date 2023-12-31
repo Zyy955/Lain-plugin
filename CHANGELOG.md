@@ -1,15 +1,51 @@
-## 1.4.5 (2023-12-30)
+## [1.4.5](https://github.com/Zyy955/Lain-plugin/compare/1.4.4...1.4.5) (2023-12-29)
+  
+
+### Bug Fixes
+
+* [Shamrock] debug日志;群员信息api补全；没啥意义的callback ([eb4e57f](https://github.com/Zyy955/Lain-plugin/commit/eb4e57fb3d64d902904a00d8449435ab0beaf2f6))
+* [Shamrock] field error ([2cf89f0](https://github.com/Zyy955/Lain-plugin/commit/2cf89f0a69d55d745817b452aa09b47ef200ae29))
+* [Shamrock] group.shareMusic ([2222f3d](https://github.com/Zyy955/Lain-plugin/commit/2222f3db68c7485f5e4976c536ac4d227cf8684a))
+* [Shamrock]调整加载逻辑 ([ae1ccec](https://github.com/Zyy955/Lain-plugin/commit/ae1ccec12e810684ac2b3d047119e915a703f2bf))
+* [Shamrock]修改加载逻辑和支持事件动态加载 ([a04baa6](https://github.com/Zyy955/Lain-plugin/commit/a04baa6a0f3a86a8d10a69582132103f6cb89aa0))
+* 修复shamrock测试apk受docs影响 ([61d541e](https://github.com/Zyy955/Lain-plugin/commit/61d541e48e356629c45f2b7a74aed951b568556a))
+* common not defined ([49e524f](https://github.com/Zyy955/Lain-plugin/commit/49e524f19969e56c13fc6e7467da9ff62d4038d4))
+
+
+### Features
+
+* [Shamrock] group sign ([e1de6a9](https://github.com/Zyy955/Lain-plugin/commit/e1de6a9d1c7f5ae3065d4e66b9fe8cdef9d08f6a))
+
+
+
+## [1.4.4](https://github.com/Zyy955/Lain-plugin/compare/1.4.3...1.4.4) (2023-12-04)
+
+
+### Bug Fixes
+
+* [Shamrock] e.bot? ([5b30543](https://github.com/Zyy955/Lain-plugin/commit/5b30543918fcf34fb5be1121c525e25a0ad5b1e2))
+* [Shamrock]修复图片发不出 ([fc3aa3e](https://github.com/Zyy955/Lain-plugin/commit/fc3aa3e7ed32d8c56736e9fadc2ba98a437ad878))
+* [Shamrock]修复图片发不出 ([9d4558f](https://github.com/Zyy955/Lain-plugin/commit/9d4558f0c9eae6c149fcbfb5bda701ed6145ee68))
+* 帮助 ([0e2bfa5](https://github.com/Zyy955/Lain-plugin/commit/0e2bfa5df5594910f1b3c1ab4475910bde29b584))
+* 锅巴！ ([9b0716e](https://github.com/Zyy955/Lain-plugin/commit/9b0716e63b126ed76a5b89af957e0a8c96300221))
+* 锅巴！ ([890071b](https://github.com/Zyy955/Lain-plugin/commit/890071b3567cd79721a7da8f4c1483c7e8fa391c))
+* 修改插件加载方式 ([fe497fb](https://github.com/Zyy955/Lain-plugin/commit/fe497fbb7e531046956e645489a24e77d6d75d4f))
+
+
+### Features
+
+* [Shamrock]错别字 ([4ef6591](https://github.com/Zyy955/Lain-plugin/commit/4ef659191c72f9f57a5780e9d9121394f193a4fb))
+* [Shamrock]增加指令 #shamrock版本 ([7b6bb24](https://github.com/Zyy955/Lain-plugin/commit/7b6bb24b1c8bbfa40e8fc262014e47b0639df01e))
+
+
+
+## [1.4.3](https://github.com/Zyy955/Lain-plugin/compare/1.4.2...1.4.3) (2023-11-29)
 
 
 ### Bug Fixes
 
 * [Shamrock] 修复禁言 ([1e8125f](https://github.com/Zyy955/Lain-plugin/commit/1e8125ffa5792e56cf0cc5bb6377533b7af34099))
 * [Shamrock] add e.member.card ([ab9ceac](https://github.com/Zyy955/Lain-plugin/commit/ab9ceac4fb8a395ef0f2031728a9bbb3d3cb8045))
-* [Shamrock] debug日志;群员信息api补全；没啥意义的callback ([eb4e57f](https://github.com/Zyy955/Lain-plugin/commit/eb4e57fb3d64d902904a00d8449435ab0beaf2f6))
-* [Shamrock] e.bot? ([5b30543](https://github.com/Zyy955/Lain-plugin/commit/5b30543918fcf34fb5be1121c525e25a0ad5b1e2))
-* [Shamrock] field error ([2cf89f0](https://github.com/Zyy955/Lain-plugin/commit/2cf89f0a69d55d745817b452aa09b47ef200ae29))
-* [Shamrock] group.shareMusic ([2222f3d](https://github.com/Zyy955/Lain-plugin/commit/2222f3db68c7485f5e4976c536ac4d227cf8684a))
-* [Shamrock]调整加载逻辑 ([ae1ccec](https://github.com/Zyy955/Lain-plugin/commit/ae1ccec12e810684ac2b3d047119e915a703f2bf))
 * [Shamrock]可能是太困了吧 ([efb110e](https://github.com/Zyy955/Lain-plugin/commit/efb110e99ae4030870d3d62b25e2d0e5f4e9add2))
 * [Shamrock]秘制typo ([f9623c5](https://github.com/Zyy955/Lain-plugin/commit/f9623c51a6af9f6d7b406ee8a2fc9757dde11b17))
 * [Shamrock]浅度适配一下小飞插件 ([619d382](https://github.com/Zyy955/Lain-plugin/commit/619d382244fbb0dc4b965e636ab0e39a69915c67))
@@ -18,45 +54,14 @@
 * [Shamrock]同步Shamrock更新 ([5337df9](https://github.com/Zyy955/Lain-plugin/commit/5337df9bfd1aef6e2ee1025698bcc8fa1d18d59b))
 * [Shamrock]无用的更新 ([c87f345](https://github.com/Zyy955/Lain-plugin/commit/c87f34549d1199727e027dff241ecf3ef4d592c6))
 * [Shamrock]细微的修改 ([be6a165](https://github.com/Zyy955/Lain-plugin/commit/be6a1656a20164231c4c96bf09bd98d998049ddc))
-* [Shamrock]修复图片发不出 ([fc3aa3e](https://github.com/Zyy955/Lain-plugin/commit/fc3aa3e7ed32d8c56736e9fadc2ba98a437ad878))
-* [Shamrock]修复图片发不出 ([9d4558f](https://github.com/Zyy955/Lain-plugin/commit/9d4558f0c9eae6c149fcbfb5bda701ed6145ee68))
-* [Shamrock]修改加载逻辑和支持事件动态加载 ([a04baa6](https://github.com/Zyy955/Lain-plugin/commit/a04baa6a0f3a86a8d10a69582132103f6cb89aa0))
 * [Shamrock]json消息判断类型避免sr闪退 ([c944e54](https://github.com/Zyy955/Lain-plugin/commit/c944e54af7c38bbf140e4dab50d0a666e7b2815f))
-* 帮助 ([0e2bfa5](https://github.com/Zyy955/Lain-plugin/commit/0e2bfa5df5594910f1b3c1ab4475910bde29b584))
 * 处理好友和入群申请（不适配椰奶） ([35ffad9](https://github.com/Zyy955/Lain-plugin/commit/35ffad901370fe80482a3ad1c73d672e0ca99a98))
-* 更新shamrock历史聊天记录api ([#8](https://github.com/Zyy955/Lain-plugin/issues/8)) ([397a783](https://github.com/Zyy955/Lain-plugin/commit/397a783a4c779e3671445f51f65213c6eda2fa0f))
-* 锅巴！ ([9b0716e](https://github.com/Zyy955/Lain-plugin/commit/9b0716e63b126ed76a5b89af957e0a8c96300221))
-* 锅巴！ ([890071b](https://github.com/Zyy955/Lain-plugin/commit/890071b3567cd79721a7da8f4c1483c7e8fa391c))
-* 历史记录source错误 ([#10](https://github.com/Zyy955/Lain-plugin/issues/10)) ([1c1db94](https://github.com/Zyy955/Lain-plugin/commit/1c1db942248268054057216e4b9cb4454c4759f6))
-* 神秘的getAvatarUrl ([7ea10cc](https://github.com/Zyy955/Lain-plugin/commit/7ea10cc7085157fe5900cdf8730d872791d1cd6f))
-* 适配椰奶的ck转换函数 ([6cb709b](https://github.com/Zyy955/Lain-plugin/commit/6cb709b55c631393d1cdb0f5d2fc030d7036ee24))
-* 适配shamrock精华 ([c989609](https://github.com/Zyy955/Lain-plugin/commit/c9896094a08a80e540c1b0284bf23bd1c82c3a8b))
-* 修复发送链接图片问题 ([#3](https://github.com/Zyy955/Lain-plugin/issues/3)) ([fa64a23](https://github.com/Zyy955/Lain-plugin/commit/fa64a23de52c8f8f8e056f9e4912644adbcc2643))
-* 修复shamrock测试apk受docs影响 ([61d541e](https://github.com/Zyy955/Lain-plugin/commit/61d541e48e356629c45f2b7a74aed951b568556a))
-* 修改插件加载方式 ([fe497fb](https://github.com/Zyy955/Lain-plugin/commit/fe497fbb7e531046956e645489a24e77d6d75d4f))
-* common not defined ([49e524f](https://github.com/Zyy955/Lain-plugin/commit/49e524f19969e56c13fc6e7467da9ff62d4038d4))
-* shamrock部分事件的完善 ([252ef36](https://github.com/Zyy955/Lain-plugin/commit/252ef36257f6a66954b5692ffe1e751873ed8aa9))
-* shamrock合并转发无文字的情况 ([#11](https://github.com/Zyy955/Lain-plugin/issues/11)) ([78d0d7c](https://github.com/Zyy955/Lain-plugin/commit/78d0d7c1f4ef194c29eb3be0e5b16582b74ce80e))
-
-
-### Features
-
-* [Shamrock] group sign ([e1de6a9](https://github.com/Zyy955/Lain-plugin/commit/e1de6a9d1c7f5ae3065d4e66b9fe8cdef9d08f6a))
-* [Shamrock]错别字 ([4ef6591](https://github.com/Zyy955/Lain-plugin/commit/4ef659191c72f9f57a5780e9d9121394f193a4fb))
-* [Shamrock]增加指令 #shamrock版本 ([7b6bb24](https://github.com/Zyy955/Lain-plugin/commit/7b6bb24b1c8bbfa40e8fc262014e47b0639df01e))
-* 尝试适配椰奶点赞 ([8894111](https://github.com/Zyy955/Lain-plugin/commit/8894111479f02d215cb92aa873985b0d4004036b))
-* 历史消息读取等新的接口 ([#6](https://github.com/Zyy955/Lain-plugin/issues/6)) ([9eedb46](https://github.com/Zyy955/Lain-plugin/commit/9eedb469521c0a1ff73fdd1929e592ab06934b7e))
-* 增加主动文件上传接口等 ([#7](https://github.com/Zyy955/Lain-plugin/issues/7)) ([4099430](https://github.com/Zyy955/Lain-plugin/commit/40994306701b2739c01b92867876f45843f78266))
-* add bkn and cookies for shamrock ([7cd2f45](https://github.com/Zyy955/Lain-plugin/commit/7cd2f45043189bf6c65de82a0cfbc5a11538f320))
-
-
-### Reverts
-
-* Revert "修正端口" ([8b99440](https://github.com/Zyy955/Lain-plugin/commit/8b99440c3cd147be2c0d0a7f67ba0ca9248a287d))
 
 
 
-## <small>1.0.0 => 1.4.5 (2023-12-30)</small>
+## [1.4.2](https://github.com/Zyy955/Lain-plugin/compare/1.4.1...1.4.2) (2023-11-20)
+
+## <small>1.0.0 => 1.4.2 (2023-11-20)</small>
 
 * !1 【轻量级 PR】：回退一处导致插入插件错误的修改 ([6b27b60](https://github.com/Zyy955/Lain-plugin/commit/6b27b60))
 * !10 【轻量级 PR】：miku喵~：“忘了判断不是127.0.0.1的情况” ([46bfe7d](https://github.com/Zyy955/Lain-plugin/commit/46bfe7d))
