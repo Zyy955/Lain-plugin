@@ -953,7 +953,7 @@ class Shamrock {
         case 'json':
           message.push({ type: 'json', ...i.data })
           raw_message.push('[json消息]')
-          log_message.push(`[json消息:${i.data}]`)
+          log_message.push(`[json消息:${i.data.data}]`)
           ToString.push(i.data.data)
           break
         /** XML消息 */
