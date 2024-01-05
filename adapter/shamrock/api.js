@@ -5,7 +5,7 @@ import fetch, { fileFromSync, FormData } from 'node-fetch'
 let api = {
   /**
    * 获取消息
-   * @param {string} id - 机器人QQ
+   * @param {string} id - 机器人QQ 通过e.bot、Bot调用无需传入
    * @param {string} message_id - 消息id
    */
   async get_msg (id, message_id) {
@@ -15,7 +15,7 @@ let api = {
 
   /**
   * 撤回消息
-  * @param {string} id - 机器人QQ
+  * @param {string} id - 机器人QQ 通过e.bot、Bot调用无需传入
   * @param {string} message_id - 消息id
   */
   async delete_msg (id, message_id) {
@@ -25,7 +25,7 @@ let api = {
 
   /**
   * 获取登录号信息
-  * @param {string} id - 机器人QQ
+  * @param {string} id - 机器人QQ 通过e.bot、Bot调用无需传入
   */
   async get_login_info (id) {
     const params = {}
@@ -34,7 +34,7 @@ let api = {
 
   /**
   * 设置 QQ 个人资料
-  * @param {string} id - 机器人QQ
+  * @param {string} id - 机器人QQ 通过e.bot、Bot调用无需传入
   * @param {string} nickname - 昵称
   * @param {string} company - 公司
   * @param {string} email - 邮箱
@@ -50,7 +50,7 @@ let api = {
 
   /**
   * 获取陌生人信息
-  * @param {string} id - 机器人QQ
+  * @param {string} id - 机器人QQ 通过e.bot、Bot调用无需传入
   * @param {string} user_id - 陌生人QQ
   */
   async get_stranger_info (id, user_id) {
@@ -60,7 +60,7 @@ let api = {
 
   /**
   * 获取好友列表
-  * @param {string} id - 机器人QQ
+  * @param {string} id - 机器人QQ 通过e.bot、Bot调用无需传入
   */
   async get_friend_list (id) {
     const params = {}
@@ -69,7 +69,7 @@ let api = {
 
   /**
   * 获取单向好友列表 (未实现)
-  * @param {string} id - 机器人QQ
+  * @param {string} id - 机器人QQ 通过e.bot、Bot调用无需传入
   */
   async get_unidirectional_friend_list (id) {
     const params = {}
@@ -78,7 +78,7 @@ let api = {
 
   /**
   * 获取群信息
-  * @param {string} id - 机器人QQ
+  * @param {string} id - 机器人QQ 通过e.bot、Bot调用无需传入
   * @param {number} group_id - 群号
   * @param refresh 是否刷新
   */
@@ -89,7 +89,7 @@ let api = {
 
   /**
   * 获取群列表
-  * @param {string} id - 机器人QQ
+  * @param {string} id - 机器人QQ 通过e.bot、Bot调用无需传入
   */
   async get_group_list (id) {
     const params = {}
@@ -98,7 +98,7 @@ let api = {
 
   /**
   * 获取群成员信息
-  * @param {string} id - 机器人QQ
+  * @param {string} id - 机器人QQ 通过e.bot、Bot调用无需传入
   * @param {number} group_id - 群号
   * @param {number} user_id - 群成员QQ号
   * @param {boolean} refresh - 是否强制刷新，会获取age, area和level字段
@@ -110,7 +110,7 @@ let api = {
 
   /**
   * 获取群成员列表
-  * @param {string} id - 机器人QQ
+  * @param {string} id - 机器人QQ 通过e.bot、Bot调用无需传入
   * @param {number} group_id - 群号
   */
   async get_group_member_list (id, group_id) {
@@ -120,7 +120,7 @@ let api = {
 
   /**
   * 获取群荣誉信息
-  * @param {string} id - 机器人QQ
+  * @param {string} id - 机器人QQ 通过e.bot、Bot调用无需传入
   * @param {number} group_id - 群号
   */
   async get_group_honor_info (id, group_id) {
@@ -130,7 +130,7 @@ let api = {
 
   /**
   * 获取群系统消息
-  * @param {string} id - 机器人QQ
+  * @param {string} id - 机器人QQ 通过e.bot、Bot调用无需传入
   */
   async get_group_system_msg (id) {
     const params = {}
@@ -139,7 +139,7 @@ let api = {
 
   /**
   * 获取精华消息列表
-  * @param {string} id - 机器人QQ
+  * @param {string} id - 机器人QQ 通过e.bot、Bot调用无需传入
   * @param {number} group_id - 群号
   */
   async get_essence_msg_list (id, group_id) {
@@ -149,7 +149,7 @@ let api = {
 
   /**
   * QQ是否在黑名单内
-  * @param {string} id - 机器人QQ
+  * @param {string} id - 机器人QQ 通过e.bot、Bot调用无需传入
   * @param {number} user_id - QQ账号
   */
   async is_blacklist_uin (id, user_id) {
@@ -159,7 +159,7 @@ let api = {
 
   /**
   * 删除好友 (未实现)
-  * @param {string} id - 机器人QQ
+  * @param {string} id - 机器人QQ 通过e.bot、Bot调用无需传入
   * @param {number} user_id - 好友 QQ 号
   */
   async delete_friend (id, user_id) {
@@ -168,7 +168,7 @@ let api = {
   },
   /**
   * 删除单向好友 (未实现)
-  * @param {string} id - 机器人QQ
+  * @param {string} id - 机器人QQ 通过e.bot、Bot调用无需传入
   * @param {number} user_id - 单向好友QQ号
   */
   async delete_unidirectional_friend (id, user_id) {
@@ -178,7 +178,7 @@ let api = {
 
   /**
   * 设置群名
-  * @param {string} id - 机器人QQ
+  * @param {string} id - 机器人QQ 通过e.bot、Bot调用无需传入
   * @param {number} group_id - 群号
   * @param {string} group_name - 新群名
   */
@@ -189,7 +189,7 @@ let api = {
 
   /**
   * 设置群头像
-  * @param {string} id - 机器人QQ
+  * @param {string} id - 机器人QQ 通过e.bot、Bot调用无需传入
   * @param {number} group_id - 群号
   * @param {number} file - 图片文件
   * @param {number} cache - 是否使用已缓存的文件 通过网络URL发送时有效, 1表示使用缓存, 0关闭关闭缓存
@@ -201,7 +201,7 @@ let api = {
 
   /**
   * 设置群管理员
-  * @param {string} id - 机器人QQ
+  * @param {string} id - 机器人QQ 通过e.bot、Bot调用无需传入
   * @param {number} group_id - 群号
   * @param {number} user_id - QQ账号
   * @param {bool} enable - 是否设置
@@ -213,7 +213,7 @@ let api = {
 
   /**
   * 设置群备注
-  * @param {string} id - 机器人QQ
+  * @param {string} id - 机器人QQ 通过e.bot、Bot调用无需传入
   * @param {number} group_id - 群号
   * @param {number} user_id - QQ账号
   * @param {string} card - 群名片内容, 不填或空字符串表示删除群名片
@@ -225,7 +225,7 @@ let api = {
 
   /**
   * 设置群组专属头衔
-  * @param {string} id - 机器人QQ
+  * @param {string} id - 机器人QQ 通过e.bot、Bot调用无需传入
   * @param {number} group_id - 群号
   * @param {number} user_id - QQ号
   * @param {string} special_title - 头衔
@@ -237,7 +237,7 @@ let api = {
 
   /**
   * 群单人禁言
-  * @param {string} id - 机器人QQ
+  * @param {string} id - 机器人QQ 通过e.bot、Bot调用无需传入
   * @param {number} group_id - 群号
   * @param {number} user_id - QQ号
   * @param {number} duration - 禁言时长，为 0 时，将解除禁言。
@@ -249,7 +249,7 @@ let api = {
 
   /**
   * 群全员禁言
-  * @param {string} id - 机器人QQ
+  * @param {string} id - 机器人QQ 通过e.bot、Bot调用无需传入
   * @param {number} group_id - 群号
   * @param {boolean} enable - 是否禁言
   */
@@ -260,7 +260,7 @@ let api = {
 
   /**
   * 设置精华消息
-  * @param {string} id - 机器人QQ
+  * @param {string} id - 机器人QQ 通过e.bot、Bot调用无需传入
   * @param {number} message_id - 消息ID
   */
   async set_essence_msg (id, message_id) {
@@ -270,7 +270,7 @@ let api = {
 
   /**
   * 移出精华消息
-  * @param {string} id - 机器人QQ
+  * @param {string} id - 机器人QQ 通过e.bot、Bot调用无需传入
   * @param {number} message_id - 消息ID
   */
   async delete_essence_msg (id, message_id) {
@@ -280,7 +280,7 @@ let api = {
 
   /**
   * 群打卡
-  * @param {string} id - 机器人QQ
+  * @param {string} id - 机器人QQ 通过e.bot、Bot调用无需传入
   * @param {number} group_id - 群号
   */
   async send_group_sign (id, group_id) {
@@ -290,7 +290,7 @@ let api = {
 
   /**
   * 发送群公告
-  * @param {string} id - 机器人QQ
+  * @param {string} id - 机器人QQ 通过e.bot、Bot调用无需传入
   * @param {number} group_id - 群号
   * @param {string} content - 公告内容
   * @param {string} image - 图片路径（可选）
@@ -302,7 +302,7 @@ let api = {
 
   /**
   * 获取群公告
-  * @param {string} id - 机器人QQ
+  * @param {string} id - 机器人QQ 通过e.bot、Bot调用无需传入
   * @param {number} group_id - 群号
   */
   async get_group_notice (id, group_id) {
@@ -312,7 +312,7 @@ let api = {
 
   /**
   * 群组踢人
-  * @param {string} id - 机器人QQ
+  * @param {string} id - 机器人QQ 通过e.bot、Bot调用无需传入
   * @param {number} group_id - 群号
   * @param {number} user_id - QQ号
   * @param {boolean} reject_add_request - 是否拒绝再次加群
@@ -324,7 +324,7 @@ let api = {
 
   /**
   * 退出群组
-  * @param {string} id - 机器人QQ
+  * @param {string} id - 机器人QQ 通过e.bot、Bot调用无需传入
   * @param {number} group_id - 群号
   */
   async set_group_leave (id, group_id) {
@@ -334,7 +334,7 @@ let api = {
 
   /**
   * 群戳一戳
-  * @param {string} id - 机器人QQ
+  * @param {string} id - 机器人QQ 通过e.bot、Bot调用无需传入
   * @param {number} group_id - 群号
   * @param {number} user_id - QQ号
   */
@@ -348,7 +348,7 @@ let api = {
 
   /**
   * 上传私聊文件
-  * @param {string} id - 机器人QQ
+  * @param {string} id - 机器人QQ 通过e.bot、Bot调用无需传入
   * @param {number} user_id - 对方QQ号
   * @param {string} file - 本地文件路径
   * @param {string} name - 文件名称
@@ -360,7 +360,7 @@ let api = {
 
   /**
   * 上传群文件
-  * @param {string} id - 机器人QQ
+  * @param {string} id - 机器人QQ 通过e.bot、Bot调用无需传入
   * @param {number} group_id - 群号
   * @param {string} file - 本地文件路径
   * @param {string} name - 储存名称
@@ -372,7 +372,7 @@ let api = {
 
   /**
   * 删除群文件
-  * @param {string} id - 机器人QQ
+  * @param {string} id - 机器人QQ 通过e.bot、Bot调用无需传入
   * @param {number} group_id - 群号
   * @param {string} file_id - 文件ID 参考 File 对象
   * @param {number} busid - 文件类型 参考 File 对象
@@ -384,7 +384,7 @@ let api = {
 
   /**
   * 创建群文件文件夹
-  * @param {string} id - 机器人QQ
+  * @param {string} id - 机器人QQ 通过e.bot、Bot调用无需传入
   * @param {number} group_id - 群号
   */
   async create_group_file_folder (id, group_id) {
@@ -394,7 +394,7 @@ let api = {
 
   /**
   * 删除群文件文件夹
-  * @param {string} id - 机器人QQ
+  * @param {string} id - 机器人QQ 通过e.bot、Bot调用无需传入
   * @param {number} group_id - 群号
   * @param {string} folder_id - 文件夹ID 参考 Folder 对象
   */
@@ -405,7 +405,7 @@ let api = {
 
   /**
   * 获取群文件系统信息
-  * @param {string} id - 机器人QQ
+  * @param {string} id - 机器人QQ 通过e.bot、Bot调用无需传入
   * @param {number} group_id - 群号
   */
   async get_group_file_system_info (id, group_id) {
@@ -415,7 +415,7 @@ let api = {
 
   /**
   * 获取群根目录文件列表
-  * @param {string} id - 机器人QQ
+  * @param {string} id - 机器人QQ 通过e.bot、Bot调用无需传入
   * @param {number} group_id - 群号
   */
   async get_group_root_files (id, group_id) {
@@ -425,7 +425,7 @@ let api = {
 
   /**
   * 获取群子目录文件列表
-  * @param {string} id - 机器人QQ
+  * @param {string} id - 机器人QQ 通过e.bot、Bot调用无需传入
   * @param {number} group_id - 群号
   * @param {string} folder_id - 文件夹ID 参考 Folder 对象
   */
@@ -436,7 +436,7 @@ let api = {
 
   /**
   * 获取群文件资源链接
-  * @param {string} id - 机器人QQ
+  * @param {string} id - 机器人QQ 通过e.bot、Bot调用无需传入
   * @param {number} group_id - 群号
   * @param {string} file_id - 文件ID 参考 File 对象
   * @param {number} busid - 文件类型 参考 File 对象
@@ -448,7 +448,7 @@ let api = {
 
   /**
   * 上传私聊文件
-  * @param {string} id - 机器人QQ
+  * @param {string} id - 机器人QQ 通过e.bot、Bot调用无需传入
   * @param {number} user_id - 对方 QQ 号
   * @param {string} file - 本地文件路径
   * @param {string} name - 文件名称
@@ -460,7 +460,7 @@ let api = {
 
   /**
   * 点赞
-  * @param {string} id - 机器人QQ
+  * @param {string} id - 机器人QQ 通过e.bot、Bot调用无需传入
   * @param {number} user_id - 对方 QQ 号
   * @param {number} times - 点赞次数
   */
@@ -473,7 +473,7 @@ let api = {
 
   /**
   * 获取历史消息
-  * @param {string} id - 机器人QQ
+  * @param {string} id - 机器人QQ 通过e.bot、Bot调用无需传入
   * @param {string} message_type - 消息 类型 必填 （private或group）
   * @param {number} user_id - 私聊QQ
   * @param {number} group_id - 群号
@@ -487,7 +487,7 @@ let api = {
 
   /**
   * 获取群聊历史消息
-  * @param {string} id - 机器人QQ
+  * @param {string} id - 机器人QQ 通过e.bot、Bot调用无需传入
   * @param {number} group_id - 群号
   * @param {number} count - 获取的消息数量（默认为20）
   * @param {number} message_seq - 起始消息的message_id（默认为0，表示从最后一条发言往前）
@@ -499,7 +499,7 @@ let api = {
 
   /**
   * 清除本地缓存消息
-  * @param {string} id - 机器人QQ
+  * @param {string} id - 机器人QQ 通过e.bot、Bot调用无需传入
   * @param {string} message_type - 消息 类型 必填 private 或 group
   * @param {number} TargetID - 目标群或者目标好友
   */
@@ -575,7 +575,7 @@ let api = {
 
   /**
   * 上传文件到缓存目录
-  * @param {string} id - 机器人QQ
+  * @param {string} id - 机器人QQ 通过e.bot、Bot调用无需传入
   * @param {string} file - 文件本地地址
   * @return {Promise<{file, md5}>} file为文件在shamrock端的本地路径，可用于发送文件、语音、视频等
   */
@@ -618,7 +618,7 @@ let api = {
 
   /**
   * 下载文件到缓存目录
-  * @param {string} id - 机器人QQ
+  * @param {string} id - 机器人QQ 通过e.bot、Bot调用无需传入
   * @param {string} file - 可传入url或base64，请注意必须为 http(s)?:// 或 base64:// 开头
   * @param {number} thread_cnt - (可选)下载的线程数量
   * @param {string | array} headers - (可选)请求头
@@ -642,7 +642,7 @@ let api = {
 
   /**
   * 获取合并转发消息内容
-  * @param {string} id - 机器人QQ
+  * @param {string} id - 机器人QQ 通过e.bot、Bot调用无需传入
   * @param {string} msg_id - 消息资源ID（卡片消息里面的resId）
   */
   async get_forward_msg (id, msg_id) {
@@ -652,7 +652,7 @@ let api = {
 
   /**
   * 发送群聊合并转发
-  * @param {string} id - 机器人QQ
+  * @param {string} id - 机器人QQ 通过e.bot、Bot调用无需传入
   * @param {number} group_id - 发送到的目标群号
   * @param {foward message[]} messages  - 合并转发消息集
   */
@@ -663,7 +663,7 @@ let api = {
 
   /**
   * 发送私聊合并转发
-  * @param {string} id - 机器人QQ
+  * @param {string} id - 机器人QQ 通过e.bot、Bot调用无需传入
   * @param {number} user_id - 发送到的目标群号
   * @param {foward message[]} messages  - 合并转发消息集
   */
@@ -674,7 +674,7 @@ let api = {
 
   /**
   * 获取被禁言的群成员列表
-  * @param {string} id - 机器人QQ
+  * @param {string} id - 机器人QQ 通过e.bot、Bot调用无需传入
   * @param {number} group_id - 发送到的目标群号
   */
   async get_prohibited_member_list (id, group_id) {
@@ -684,7 +684,7 @@ let api = {
 
   /**
   * 发送好友消息
-  * @param {string} id - 机器人QQ
+  * @param {string} id - 机器人QQ 通过e.bot、Bot调用无需传入
   * @param {number} user_id - 目标QQ
   * @param {object} message - 发送内容
   * @param {string} raw_message - 发送内容日志
@@ -722,7 +722,7 @@ let api = {
 
   /**
   * 发送群聊消息
-  * @param {string} id - 机器人QQ
+  * @param {string} id - 机器人QQ 通过e.bot、Bot调用无需传入
   * @param {number} group_id - 目标群号
   * @param {object} message - 发送内容
   * @param {string} raw_message - 发送内容日志
@@ -760,7 +760,7 @@ let api = {
 
   /**
   * 发送 WebSocket 请求
-  * @param {string} id - 机器人QQ
+  * @param {string} id - 机器人QQ 通过e.bot、Bot调用无需传入
   * @param {string} action - 请求 API 端点
   * @param {string} params - 请求参数
   */

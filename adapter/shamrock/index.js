@@ -262,6 +262,13 @@ class Shamrock {
     switch (data.request_type) {
       case 'group': {
         data.tips = data.comment
+        try {
+          let gl = Bot[this.id].gl.get(data.group_id)
+          let fl = await Bot[this.id].api.get_stranger_info(Number(data.user_id))
+          data = { ...data, ...gl, ...fl }
+          data.group_id = Number(data.group_id)
+          data.user_id = Number(data.user_id)
+        } catch { }
         if (data.sub_type === 'add') {
           common.info(this.id, `[${data.user_id}]申请入群[${data.group_id}]: ${data.tips}`)
         } else {
@@ -272,6 +279,11 @@ class Shamrock {
       }
       case 'friend': {
         data.sub_type = 'add'
+        try {
+          let fl = await Bot[this.id].api.get_stranger_info(Number(data.user_id))
+          data = { ...data, ...fl }
+          data.user_id = Number(data.user_id)
+        } catch { }
         common.info(this.id, `[${data.user_id}]申请加机器人[${this.id}]好友: ${data.comment}`)
         break
       }
