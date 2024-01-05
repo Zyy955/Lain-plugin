@@ -2,7 +2,7 @@ import { WebSocketServer } from 'ws'
 import api from './api.js'
 import SendMsg from './sendMsg.js'
 import e from './message.js'
-import common from '../../model/common.js'
+import common from '../../lib/common/common.js'
 import PluginsLoader from '../../../../lib/plugins/loader.js'
 
 class WeChat {

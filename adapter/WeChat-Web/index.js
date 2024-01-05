@@ -1,7 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 import fetch from 'node-fetch'
-import common from '../../model/common.js'
+import common from '../../lib/common/common.js'
 
 export default class StartWeChat4u {
   constructor (id, config) {

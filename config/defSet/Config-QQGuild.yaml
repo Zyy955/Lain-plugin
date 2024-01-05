@@ -1,0 +1,31 @@
+default:
+  ImageSize: 2.5                          # 图片压缩阈值
+  width: 1000                             # 压缩后图片宽度像素大小
+  quality: 100                            # 压缩后的图片质量
+  recallQR: 0                             # 撤回url转换成二维码的时间(秒) 0表示不撤回
+
+  blackGuild:                             # 黑名单频道
+    - qg_6120782151088355109
+
+  blackChannel:                           # 黑名单子频道
+    - 514216167
+
+  whiteGuild:                             # 白名单频道
+
+  whiteChannel:                           # 白名单子频道
+
+'1234567':
+  ImageSize: 2.5                          # 图片压缩阈值
+  width: 1000                             # 压缩后图片宽度像素大小
+  quality: 100                            # 压缩后的图片质量
+  recallQR: 0                             # 撤回url转换成二维码的时间(秒) 0表示不撤回
+
+  blackGuild:                             # 黑名单频道
+    - qg_6120782151088355109
+
+  blackChannel:                           # 黑名单子频道
+    - 514216167
+
+  whiteGuild:                             # 白名单频道
+
+  whiteChannel:                           # 白名单子频道

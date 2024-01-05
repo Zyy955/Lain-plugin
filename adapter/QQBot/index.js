@@ -1,17 +1,20 @@
 import { exec } from 'child_process'
 import fs from 'fs'
 import sizeOf from 'image-size'
+import lodash from 'lodash'
 import path from 'path'
 import QQBot from 'qq-group-bot'
 import QrCode from 'qrcode'
 import { encode as encodeSilk } from 'silk-wasm'
 import Yaml from 'yaml'
-import common from '../../model/common.js'
+import MiaoCfg from '../../../../lib/config/config.js'
+import common from '../../lib/common/common.js'
 import Button from './plugins.js'
+import Cfg from '../../lib/config/config.js'
 
-export default class StartQQBot {
+export default class adapterQQBot {
   /** 传入基本配置 */
-  constructor (config) {
+  constructor (config, add) {
     /** 开发者id */
     this.id = config.appid
     /** 基本配置 */
@@ -25,7 +28,7 @@ export default class StartQQBot {
     /** 日志等级 */
     this.config.logLevel = Bot.lain.BotCfg.log_level
     /** 启动当前Bot */
-    this.StartBot()
+    if (!add) this.StartBot()
   }
 
   async StartBot () {
@@ -50,8 +53,8 @@ export default class StartQQBot {
     const { id, avatar, username } = await this.bot.getSelfInfo()
 
     Bot[this.id] = {
-      ...this.bot,
       ws: this.bot,
+      config: this.config,
       bkn: 0,
       avatar,
       adapter: 'QQBot',
@@ -86,6 +89,7 @@ export default class StartQQBot {
 
     /** 重启 */
     await common.init('Lain:restart:QQBot')
+    return `QQBot：[${username}(${this.id})] 连接成功!`
   }
 
   /** 修改一下日志 */
@@ -189,10 +193,23 @@ export default class StartQQBot {
     e.sendMsg = data.reply
     e.data = data
 
-    if (Bot.lain.cfg.QQBotPrefix) {
+    if (Bot[this.id].config.other.Prefix) {
       e.message.some(msg => {
         if (msg.type === 'text') {
-          msg.text = msg.text.trim().replace(/^\//, '#')
+          /** 兼容前缀 */
+          let groupCfg = MiaoCfg.getGroup(e.group_id)
+          let alias = groupCfg.botAlias
+          if (!Array.isArray(alias)) {
+            alias = [alias]
+          }
+          for (let name of alias) {
+            if (msg.text.startsWith(name)) {
+              /** 先去掉前缀 再 / => # */
+              msg.text = lodash.trimStart(msg.text, name).trim().replace(/^\//, '#')
+              msg.text = name + msg.text
+              break
+            }
+          }
           return true
         }
         return false
@@ -281,7 +298,6 @@ export default class StartQQBot {
           reject(error)
           return
         }
-        common.mark('Lain-plugin', `ffmpeg转码完成：${input} => ${output}`)
         resolve()
       }
       )
@@ -295,7 +311,7 @@ export default class StartQQBot {
     if (typeof msg !== 'string') return msg
 
     /** 需要处理的url */
-    let urls = Bot.getUrls(msg, Bot.lain.cfg.whitelist_Url)
+    let urls = Bot.getUrls(msg, Cfg.WhiteLink)
 
     let promises = urls.map(link => {
       return new Promise((resolve, reject) => {
@@ -378,7 +394,7 @@ export default class StartQQBot {
     if (text.length) try { common.MsgTotal(this.id, 'QQBot') } catch { }
     if (image.length) try { common.MsgTotal(this.id, 'QQBot', 'image') } catch { }
 
-    switch (e.bot.config.markdownType) {
+    switch (e.bot.config.markdown.type) {
       /** 关闭 */
       case 0:
       case '0':
@@ -442,8 +458,8 @@ export default class StartQQBot {
             const markdown = [
               {
                 type: 'markdown',
-                custom_template_id: e.bot.config.markdown,
-                params: [{ key: Bot.lain.cfg.QQBotMD.text || 'text_start', values: ['\u200B'] }]
+                custom_template_id: e.bot.config.markdown.id,
+                params: [{ key: e.bot.config.markdown.text || 'text_start', values: ['\u200B'] }]
               },
               ...button
             ]
@@ -479,6 +495,7 @@ export default class StartQQBot {
 
   /** 处理图片 */
   async getImage (file) {
+    file = await Bot.FormatFile(file)
     const type = 'image'
     try {
       /** 自定义图床 */
@@ -589,18 +606,18 @@ export default class StartQQBot {
   async markdown (e, data, Button = true) {
     let markdown = {
       type: 'markdown',
-      custom_template_id: e.bot.config.markdown,
+      custom_template_id: e.bot.config.markdown.id,
       params: []
     }
 
     for (let i of data) {
       switch (i.type) {
         case 'text':
-          markdown.params.push({ key: Bot.lain.cfg.QQBotMD.text || 'text_start', values: [i.text.replace(/\n/g, '\r')] })
+          markdown.params.push({ key: e.bot.config.markdown.text || 'text_start', values: [i.text.replace(/\n/g, '\r')] })
           break
         case 'image':
-          markdown.params.push({ key: Bot.lain.cfg.QQBotMD.image || 'img_url', values: [i.file] })
-          markdown.params.push({ key: Bot.lain.cfg.QQBotMD.ImageSize || 'img_dec', values: [`text #${i.width}px #${i.height}px`] })
+          markdown.params.push({ key: e.bot.config.markdown.img_url || 'img_url', values: [i.file] })
+          markdown.params.push({ key: e.bot.config.markdown.img_dec || 'img_dec', values: [`text #${i.width}px #${i.height}px`] })
           break
         default:
           break

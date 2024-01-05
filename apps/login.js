@@ -1,5 +1,5 @@
 import fs from 'fs'
-import common from '../model/common.js'
+import common from '../lib/common/common.js'
 import StartWeChat4u from '../adapter/WeChat-Web/index.js'
 
 export class WebWcChat extends plugin {

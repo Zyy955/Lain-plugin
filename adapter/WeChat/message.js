@@ -1,6 +1,6 @@
 import api from './api.js'
 import SendMsg from './sendMsg.js'
-import common from '../../model/common.js'
+import common from '../../lib/common/common.js'
 
 export default class message {
   /** 传入基本配置 */

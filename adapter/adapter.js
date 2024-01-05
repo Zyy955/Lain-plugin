@@ -1,6 +1,6 @@
 import fs from 'fs'
-import Yaml from 'yaml'
-import common from '../model/common.js'
+import Cfg from '../lib/config/config.js'
+import common from '../lib/common/common.js'
 
 /** 适配器列表 */
 const adapter = []
@@ -13,37 +13,45 @@ adapter.push(async function httpServer () {
 
 /** 加载标准输入 */
 adapter.push(async function stdin () {
+  if (!Cfg.Stdin.state) return
   const stdin = (await import('./stdin/stdin.js')).default
   await stdin()
   return common.info('标准输入', '加载完成...您可以在控制台输入指令哦~')
 })
 
-/** 加载QQ频道适配器 */
-adapter.push(async function QQGuild () {
-  if (!fs.existsSync(Bot.lain._path + '/bot.yaml')) return
-  const bot = Yaml.parse(fs.readFileSync(Bot.lain._path + '/bot.yaml', 'utf8'))
-  for (const i in bot) {
-    if (i === 'default') continue
-    try {
-      const Guild = (await import('./QQGuild/index.js')).default
-      await new Guild(bot[i]).monitor()
-    } catch (err) {
-      logger.error(err)
-    }
-  }
-  common.info('Lain-plugin', 'QQ频道适配器加载完成...')
-})
-
 /** QQBot适配器 */
 adapter.push(async function QQBot () {
-  try {
-    const cfg = fs.readFileSync(Bot.lain._path + '/QQBot.yaml', 'utf8')
-    Object.entries(Yaml.parse(cfg)).forEach(async ([appid, cfg]) => {
-      if (Object.keys(cfg).length === 0) return
-      const StartQQBot = (await import('./QQBot/index.js')).default
-      return new StartQQBot(cfg)
+  if (Object.values(Cfg.token()).length) {
+    Object.values(Cfg.token()).forEach(async bot => {
+      if (bot.model == 0 || bot.model == 2) {
+        try {
+          const StartQQBot = (await import('./QQBot/index.js')).default
+          return new StartQQBot(bot)
+        } catch (err) {
+          return common.error('Lain-plugin', 'QQBot适配器加载失败：', err)
+        }
+      }
     })
-  } catch (err) { return common.error('QQBot', `QQBot适配器加载失败,${err}`) }
+  }
+})
+
+/** 加载QQ频道适配器 */
+adapter.push(async function QQGuild () {
+  if (Object.values(Cfg.token()).length) {
+    Object.values(Cfg.token()).forEach(async bot => {
+      if (bot.model == 0 || bot.model == 1) {
+        try {
+          /** 同时创建连接会出bug...sbTX */
+          if (bot.model == 0) await common.sleep(5000)
+          const Guild = (await import('./QQGuild/index.js')).default
+          await new Guild(bot)
+        } catch (err) {
+          return common.error('Lain-plugin', 'QQGuild适配器加载失败：', err)
+        }
+      }
+    })
+  }
+  common.info('Lain-plugin', 'QQ频道适配器加载完成...')
 })
 
 /** 加载微信 */

@@ -4,7 +4,9 @@ import lodash from 'lodash'
 
 /** 捏，可以保留注释哦 */
 export default class yaml {
-  /** 传入路径 */
+  /**
+   * @param {string} _path - 传入yaml文件路径
+   */
   constructor (_path) {
     this._path = _path
     this.parse()
@@ -20,23 +22,33 @@ export default class yaml {
     return this.document.toJSON()
   }
 
-  /* 检查指定键是否存在 */
+  /**
+ * 获取指定键的值
+ * @param {string} key
+ */
+  get (key) {
+    return lodash.get(this.data(), key)
+  }
+
+  /**
+  * 检查指定键是否存在
+  * @param {string} key
+  */
   hasIn (key) {
     return this.document.hasIn([key])
   }
 
-  /** 检查指定值是否存在 */
+  /**
+   * 检查指定的键是否存在对应的值
+   * @param {string} key - 需要检查的键
+   * @param {string} value - 需要检查的值
+   */
   value (key, value) {
     const res = this.get(key)
     if (Array.isArray(res)) {
       return !!res.includes(value)
     }
     return !!res[value]
-  }
-
-  /** 获取指定键的值 */
-  get (key) {
-    return lodash.get(this.data(), key)
   }
 
   /* 修改键值 */

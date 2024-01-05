@@ -62,7 +62,6 @@ class Button {
       const filesList = []
       /** 遍历插件目录 */
       const List = fs.readdirSync(this.plugin)
-
       for (let folder of List) {
         const folderPath = this.plugin + `/${folder}`
         /** 检查是否为文件夹 */
@@ -71,7 +70,16 @@ class Button {
         filesList.push(this.plugin + `/${folder}/lain.support.js`)
       }
 
-      filesList.push(this.plugin + '/Lain-plugin/plugins/button')
+      /** 获取插件包内的文件夹，进行热更 */
+      const pluginList = fs.readdirSync(this.plugin + '/Lain-plugin/plugins')
+      /** 支持插件包按钮 */
+      for (let folder of pluginList) {
+        const folderPath = this.plugin + `/Lain-plugin/plugins/${folder}`
+        /** 检查是否为文件夹 */
+        if (!fs.lstatSync(folderPath).isDirectory()) continue
+        /** 保存 */
+        filesList.push(folderPath)
+      }
 
       /** 热更新 */
       filesList.map(folder => {

@@ -1,5 +1,5 @@
 import SendMsg from './sendMsg.js'
-import common from '../../model/common.js'
+import common from '../../lib/common/common.js'
 
 export default class message {
   /** 传入基本配置 */
@@ -275,7 +275,7 @@ export default class message {
           message.push({ type: 'face', text: faceValue })
         } else {
           /** 前缀处理 */
-          if (i && Bot.lain.cfg.prefix && !Bot.lain.cfg.prefixBlack.includes(this.id)) {
+          if (i && Bot[this.id].config.other.Prefix) {
             i = i.trim().replace(/^\//, '#')
           }
           raw_message.push(i)

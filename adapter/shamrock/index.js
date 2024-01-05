@@ -1,7 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 import { WebSocketServer } from 'ws'
-import common from '../../model/common.js'
+import common from '../../lib/common/common.js'
 import api from './api.js'
 import { faceMap, pokeMap } from '../../model/shamrock/face.js'
 
@@ -1228,6 +1228,7 @@ class Shamrock {
           try {
             /** 笨比复读! */
             if (i?.url) i.file = i.url
+            i.file = await Bot.FormatFile(i.file)
             let file = await Bot.Base64(i.file, { http: true })
             /** 判断是否为http */
             if (!/^http(s)?:\/\//.test(file)) {

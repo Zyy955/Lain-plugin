@@ -4,7 +4,7 @@ import fs from 'fs'
 import get_urls from 'get-urls'
 import sizeOf from 'image-size'
 import fetch from 'node-fetch'
-import common from '../../model/common.js'
+import common from '../../lib/common/common.js'
 
 /**
 * 传入文件，返回Buffer
@@ -137,7 +137,7 @@ Bot.uploadQQ = async function (file, uin = Bot.uin) {
 *   - {string} md5 - 文件的MD5哈希值
 */
 Bot.FileToUrl = async function (file, type = 'image') {
-  const buffer = await Bot.Buffer(file)
+  const buffer = await Bot.Buffer(file, { http: type === 'video' })
   const time = `${Date.now()}.${type === 'image' ? 'jpg' : (type === 'audio' ? 'mp3' : 'mp4')}`
   fs.writeFileSync(process.cwd() + `/plugins/Lain-plugin/resources/QQBotApi/${time}`, buffer)
 
@@ -217,6 +217,40 @@ Bot.toType = function (i) {
   }
 
   return { type, file }
+}
+
+/**
+* 处理segment中的i.file，主要用于一些sb字段，标准化他们
+* @param file - i.file
+*/
+Bot.FormatFile = async function (file) {
+  switch (typeof file) {
+    case 'object':
+      /** 这里会有复读这样的直接原样不动把message发过来... */
+      if (file.url) {
+        if (file?.url?.includes('gchat.qpic.cn') && !file?.url?.startsWith('https://')) return `https://${file.url}`
+        return file.url
+      }
+
+      /** 老插件渲染出来的图有这个字段 */
+      if (file?.type === 'Buffer') return Buffer.from(file?.data)
+      if (Buffer.isBuffer(file) || file instanceof Uint8Array) return file
+
+      /** 流 */
+      if (file instanceof fs.ReadStream) return await Bot.Stream(file, { base: true })
+      return file
+    case 'string':
+      if (fs.existsSync(file.replace(/^file:\/\//, ''))) {
+        return file
+      } else if (fs.existsSync(file.replace(/^file:\/\/\//, ''))) {
+        return file.replace(/^file:\/\/\//, 'file://')
+      } else if (fs.existsSync(file)) {
+        return `file://${file}`
+      }
+      return file
+    default:
+      return file
+  }
 }
 
 /**

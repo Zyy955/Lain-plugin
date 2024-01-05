@@ -9,6 +9,9 @@
     "commitmsg": "validate-commit-msg",
     "log": "conventional-changelog -p angular -i CHANGELOG.md -s -r 1"
   },
+  "imports": {
+    "#Lain": "./lib/init.js"
+  },
   "adapter": {
     "QQGuild": "0.5.2",
     "ComWeChat": "0.2.3",
@@ -25,10 +28,10 @@
     "qq-group-bot": "^1.0.7",
     "qq-guild-bot": "^2.9.5",
     "qrcode": "^1.5.3",
-    "sharp": "^0.33.0",
+    "sharp": "^0.33.1",
     "silk-wasm": "^3.1.0",
     "wechat4u": "^0.7.14",
-    "ws": "^8.15.0"
+    "ws": "^8.16.0"
   },
   "devDependencies": {
     "cz-conventional-changelog": "^3.3.0",

@@ -1,34 +1,41 @@
 import SendMsg from './sendMsg.js'
-import common from '../../model/common.js'
+import common from '../../lib/common/common.js'
 import qg_log from './log.js'
 import message from './message.js'
+import Cfg from '../../lib/config/config.js'
 import { createOpenAPI, createWebsocket } from 'qq-guild-bot'
 
 export default class guild {
   /** 传入基本配置 */
-  constructor (Cfg) {
+  constructor (config, add) {
+    /** 兼容通用配置 */
+    config.appID = config.appid
     /** 开发者id */
-    this.id = `qg_${Cfg.appID}`
+    this.id = `qg_${config.appid}`
     /** 机器人令牌(token) */
-    this.token = Cfg.token
+    this.token = config.token
     /** 沙盒模式 */
-    this.sandbox = Cfg.sandbox
+    this.sandbox = config.sandbox
     /** 是否接收全部消息 */
-    this.allMsg = Cfg.allMsg
+    this.allMsg = config.allMsg
     /** 当前机器人配置 */
-    this.Cfg = Cfg
+    this.config = config
+    /** 被动连接 */
+    if (!add) this.StartBot()
   }
 
   /** 创建连接 */
-  async monitor () {
+  async StartBot () {
     /** 基础监听事件 */
     const intents = ['GUILDS', 'GUILD_MEMBERS', 'GUILD_MESSAGE_REACTIONS', 'DIRECT_MESSAGE']
     /** 接收全部消息 */
     this.allMsg ? intents.push('GUILD_MESSAGES') : intents.push('PUBLIC_GUILD_MESSAGES')
     /** 添加监听事件 */
-    this.Cfg.intents = intents
+    this.config.intents = intents
     /** 注册Bot */
-    Bot[this.id] = this.Cfg
+    Bot[this.id] = this.config
+    /** 注册配置文件 */
+    Bot[this.id].config = this.config
     /** 创建 client */
     Bot[this.id].client = createOpenAPI(Bot[this.id])
     /** 创建 websocket 连接 */
@@ -58,6 +65,7 @@ export default class guild {
     await this.guilds(this.id)
     /** 告知用户加载资源完成 */
     common.info(this.id, '加载资源完毕...')
+    return `QQGuild：[${Bot[this.id].nickname}(${this.id})] 连接成功!`
   }
 
   /** 保存bot的信息 */
@@ -227,18 +235,14 @@ export default class guild {
     if (data?.msg?.content?.includes('#QQ频道解除私信')) {
       return await this.Sendprivate(data)
     }
-    const cfg = Bot.lain.cfg
     const { guild_id, channel_id } = data.msg
 
     /** 过频道黑白名单结果 */
-    const guild = this.checkBlack(cfg, `qg_${guild_id}`)
-    /** 过子频道黑白名单结果 别问为啥一起过...懒 */
-    const channel = this.channel_checkBlack(cfg, String(channel_id))
-
+    const checkBlack = this.checkBlack(`qg_${guild_id}`, channel_id)
     /** 转换消息 */
     const e = new message(this.id, data)
 
-    if (guild && channel) {
+    if (checkBlack) {
       data.checkBlack = true
       return await Bot.emit('message', await e.msg(type))
     } else {
@@ -248,27 +252,24 @@ export default class guild {
   }
 
   /** 判断频道黑白名单 */
-  checkBlack (cfg, guild_id) {
+  checkBlack (guild_id, channel_id) {
+    const config = Cfg.QQGuild(guild_id)
     /** 过白名单频道 */
-    if (Array.isArray(cfg.whitelist) && cfg.whitelist.length > 0) {
-      return cfg.whitelist.includes(String(guild_id))
+    if (Array.isArray(config.whiteGuild) && config.whiteGuild.length > 0) {
+      return config.whiteGuild.includes(String(guild_id))
     }
     /** 过黑名单频道 */
-    if (Array.isArray(cfg.blacklist) && cfg.blacklist.length > 0) {
-      return !cfg.blacklist.includes(String(guild_id))
+    if (Array.isArray(config.blackGuild) && config.blackGuild.length > 0) {
+      return !config.blackGuild.includes(String(guild_id))
     }
-    return true
-  }
 
-  /** 判断子频道黑白名单 */
-  channel_checkBlack (cfg, channel_id) {
     /** 过白名单子频道 */
-    if (Array.isArray(cfg.channel_whitelist) && cfg.channel_whitelist.length > 0) {
-      return cfg.channel_whitelist.includes(String(channel_id))
+    if (Array.isArray(config.whiteChannel) && config.whiteChannel.length > 0) {
+      return config.whiteChannel.includes(String(channel_id)) || config.whiteChannel.includes(Number(channel_id))
     }
     /** 过黑名单子频道 */
-    if (Array.isArray(cfg.channel_blacklist) && cfg.channel_blacklist.length > 0) {
-      return !cfg.channel_blacklist.includes(String(channel_id))
+    if (Array.isArray(config.blackChannel) && config.blackChannel.length > 0) {
+      return !config.blackChannel.includes(String(channel_id)) || !config.blackChannel.includes(Number(channel_id))
     }
     return true
   }

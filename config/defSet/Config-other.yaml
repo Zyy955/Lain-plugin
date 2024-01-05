@@ -1,0 +1,10 @@
+stdin:               # 标准输入
+  state: true        # 标准输入开关
+  name: "标准输入"    # 标准输入名称 => 椰奶状态显示
+
+ComWeChat:           # PC微信
+  name:              # PC微信名称 => 椰奶状态显示
+  autoFriend: 1      # 自动同意加好友 1-同意 0-不处理
+
+WeXin:               # 网页版微信
+  autoFriend: 1      # 自动同意加好友 1-同意 0-不处理

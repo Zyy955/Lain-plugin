@@ -3,7 +3,7 @@ import lodash from 'lodash'
 import QrCode from 'qrcode'
 import fetch, { FormData, Blob } from 'node-fetch'
 
-import common from '../../model/common.js'
+import common from '../../lib/common/common.js'
 
 export default class SendMsg {
   /** 传入基本配置 */

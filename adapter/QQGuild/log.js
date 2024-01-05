@@ -1,4 +1,4 @@
-import common from '../../model/common.js'
+import common from '../../lib/common/common.js'
 
 export default class QQGuildLog {
   /** 传入基本配置 */

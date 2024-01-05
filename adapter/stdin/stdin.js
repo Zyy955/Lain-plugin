@@ -1,6 +1,7 @@
 import fs from 'fs'
 import { createInterface } from 'readline'
-import common from '../../model/common.js'
+import common from '../../lib/common/common.js'
+import Cfg from '../../lib/config/config.js'
 const uin = 'stdin'
 
 export default async function stdin () {
@@ -18,8 +19,8 @@ export default async function stdin () {
     guilds: new Map(),
     id: uin,
     uin,
-    name: Bot.lain.cfg.stdin_nickname,
-    nickname: Bot.lain.cfg.stdin_nickname,
+    name: Cfg.Stdin.name,
+    nickname: Cfg.Stdin.name,
     avatar: `../../../../../plugins/Lain-plugin/resources/${avatar}`,
     stat: { start_time: Date.now() / 1000 },
     version: Bot.lain.adapter.stdin.version,

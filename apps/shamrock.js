@@ -1,6 +1,6 @@
 import { ShamrockRepoClient } from '../model/shamrock/shamrock.js'
 import Render from '../model/render.js'
-import common from '../model/common.js'
+import common from '../lib/common/common.js'
 import fs from 'fs'
 import path from 'path'
 

@@ -14,32 +14,32 @@ import common from '../../lib/common/common.js'
 const guilds = []
 const channels = []
 const prefixBlack = []
-/** 延迟10秒加载数据，防止某些数据没有加载 */
-setTimeout(async () => {
-  while (true) {
-    /** 防止为空 */
-    if (Bot?.lain?.guilds) {
-      const list = Bot.lain.guilds
-      for (let id in list) {
-        /** 频道 */
-        guilds.push({ label: list[id].name, value: `qg_${id}` })
-        /** 这里是子频道 */
-        for (let i in list[id].channels) {
-          channels.push({ label: list[id].name + '-' + list[id].channels[i], value: i })
-        }
-      }
-      break
-    } else {
-      await common.sleep(1000)
-    }
-  }
+// /** 延迟10秒加载数据，防止某些数据没有加载 */
+// setTimeout(async () => {
+//   while (true) {
+//     /** 防止为空 */
+//     if (Bot?.lain?.guilds) {
+//       const list = Bot.lain.guilds
+//       for (let id in list) {
+//         /** 频道 */
+//         guilds.push({ label: list[id].name, value: `qg_${id}` })
+//         /** 这里是子频道 */
+//         for (let i in list[id].channels) {
+//           channels.push({ label: list[id].name + '-' + list[id].channels[i], value: i })
+//         }
+//       }
+//       break
+//     } else {
+//       await common.sleep(1000)
+//     }
+//   }
 
-  const cfg = new yaml('./plugins/Lain-plugin/config/bot.yaml')
-  const config = cfg.data()
-  for (const i in config) {
-    prefixBlack.push({ label: Bot?.[i]?.name || '未知', value: config[i].appID })
-  }
-}, 10000)
+//   const cfg = new yaml('./plugins/Lain-plugin/config/bot.yaml')
+//   const config = cfg.data()
+//   for (const i in config) {
+//     prefixBlack.push({ label: Bot?.[i]?.name || '未知', value: config[i].appID })
+//   }
+// }, 10000)
 
 export function supportGuoba () {
   /** 添加url链接白名单 */

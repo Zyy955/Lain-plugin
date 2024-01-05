@@ -2,14 +2,15 @@ import fs from 'fs'
 import express from 'express'
 import fetch from 'node-fetch'
 import { createServer } from 'http'
-import common from '../model/common.js'
+import common from '../lib/common/common.js'
+import Cfg from '../lib/config/config.js'
 import shamrock from './shamrock/index.js'
 import ComWeChat from './WeChat/index.js'
 import { fileTypeFromBuffer } from 'file-type'
 
 export default class WebSocket {
   constructor () {
-    this.port = Bot.lain.cfg.port
+    this.port = Cfg.port
     this.path = '/Shamrock'
     this.path_wx = '/ComWeChat'
   }

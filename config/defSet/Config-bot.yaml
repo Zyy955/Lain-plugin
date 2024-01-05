@@ -1,0 +1,9 @@
+Server:
+  port: 2955          # HTTP端口,ComWeChat、Shamrock、QQBot临时文件使用
+  baseIP:             # 临时文件服务器IP，与下方 baseUrl 二选一，推荐公网使用上方2955端口的配置，可填域名：127.0.0.1 或 www.lain.com
+  baseUrl:            # 临时文件服务器访问url,QQBot使用。端口转发、域名等使用：http://www.lain.com 或 http://192.168.0.1:2956
+  InvalidTime: 30     # 临时文件服务器失效时间,QQBot使用
+
+Other:
+  WhiteLink:      # url白名单，在白名单中的链接不会转为二维码
+    - https://www.lain.com

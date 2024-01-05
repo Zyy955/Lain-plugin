@@ -1,5 +1,5 @@
 import { randomUUID } from 'crypto'
-import common from '../../model/common.js'
+import common from '../../lib/common/common.js'
 
 const api = {
   /** 获取支持的动作列表 */

@@ -1,0 +1,24 @@
+# 示例配置
+default:
+  "default":
+    model: 0                              # 0-全部启用  1-仅启用QQ频道  2-仅启用QQ群Bot  3-不启用
+    appid: "default"                    # 开发者ip
+    sandbox: false                        # 沙盒  true-开启  false-关闭
+    allMsg: true                          # QQ频道接收全部消息  true-私域  false-公域
+    token:                                # 机器人令牌
+    secret:                               # 机器人密钥
+    markdown:                             # QQBot高阶能力
+      id:                                 # 模板ID
+      type: 0                             # 0-关闭  1-全局  2-正则模式  3-按钮模式   详情请查看文档
+      text: text_start                    # markdown模板文字键
+      img_dec: img_dec                    # markdown模板图片宽高键
+      img_url: img_url                    # markdown模板图片url键
+    other:                                # 其他配置
+      Prefix: true                        # QQ频道、QQ群Bot前缀转换 [/] => [#]   true-开启  false-关闭
+      QQCloud:                            # QQ群Bot => QQ图床，填写QQ号。需使用QQ发送图片
+      Tips: false                         # QQ群Bot => 进入新群后，发送防倒卖提示  true-开启  false-关闭
+      Tips-GroupId:                       # QQ群Bot => 防倒卖提示中的QQ群号
+
+token:
+
+  
