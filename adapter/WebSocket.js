@@ -7,7 +7,6 @@ import Cfg from '../lib/config/config.js'
 import shamrock from './shamrock/index.js'
 import ComWeChat from './WeChat/index.js'
 import { fileTypeFromBuffer } from 'file-type'
-import Cfg from '../lib/config/config.js'
 
 export default class WebSocket {
   constructor () {

@@ -11,6 +11,7 @@ import MiaoCfg from '../../../../lib/config/config.js'
 import common from '../../lib/common/common.js'
 import Button from './plugins.js'
 import Cfg from '../../lib/config/config.js'
+import loader from '../../../../lib/plugins/loader.js'
 
 export default class adapterQQBot {
   /** 传入基本配置 */
@@ -34,9 +35,15 @@ export default class adapterQQBot {
   async StartBot () {
     this.bot = new QQBot.Bot(this.config)
     // 群聊被动回复
-    this.bot.on('message.group', async (e) => Bot.emit('message', await this.msg(e, true)))
+    this.bot.on('message.group', async (e) => {
+      e = await this.msg(e, true)
+      if (e) Bot.emit('message', e)
+    })
     // 私聊被动回复
-    this.bot.on('message.private', async (e) => await Bot.emit('message', await this.msg(e, true)))
+    this.bot.on('message.private', async (e) => {
+      e = await this.msg(e, true)
+      if (e) Bot.emit('message', e)
+    })
 
     /** 开始链接 */
     await this.bot.start()
@@ -192,10 +199,28 @@ export default class adapterQQBot {
     e.self_id = e.bot.config.appid
     e.sendMsg = data.reply
     e.data = data
+    // let checkDisable = true
+
+    // for (let v of loader.priority) {
+    //   let p = new v.class(e)
+    //   p.e = e
+    //   /** 判断是否启用功能 */
+    //   if (!this.checkDisable(e, p)) {
+    //     checkDisable = false
+    //     return false
+    //   }
+    // }
+
+    // if (!checkDisable) return false
 
     if (Bot[this.id].config.other.Prefix) {
       e.message.some(msg => {
         if (msg.type === 'text') {
+          if (msg.text.trim().startsWith('/')) {
+            msg.text = msg.text.trim().replace(/^\//, '#')
+            return true
+          }
+
           /** 兼容前缀 */
           let groupCfg = MiaoCfg.getGroup(e.group_id)
           let alias = groupCfg.botAlias
@@ -257,6 +282,27 @@ export default class adapterQQBot {
     /** 保存消息次数 */
     try { common.recvMsg(e.self_id, e.adapter) } catch { }
     return e
+  }
+
+  /** 判断是否启用功能 */
+  checkDisable (e, p) {
+    let groupCfg = Cfg.getGroup(e.self_id)
+    /** 走一遍正则 */
+    if (!lodash.isEmpty(groupCfg.enable)) {
+      if (groupCfg.enable.includes(p.name)) return true
+      logger.mark(`[Lain-plugin][${p.name}]功能已禁用`)
+      return false
+    }
+
+    if (!lodash.isEmpty(groupCfg.disable)) {
+      if (groupCfg.disable.includes(p.name)) {
+        logger.mark(`[Lain-plugin][${p.name}]功能已禁用`)
+        return false
+      }
+
+      return true
+    }
+    return true
   }
 
   /** 小兔崽子 */
