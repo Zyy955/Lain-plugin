@@ -97,6 +97,10 @@ class Shamrock {
       case 'group_recall':
         data.notice_type = 'group'
         data.sub_type = 'recall'
+        try {
+          let gl = Bot[this.id].gl.get(data.group_id)
+          data = { ...data, ...gl }
+        } catch { }
         if (data.operator_id === data.user_id) {
           common.info(this.id, `群消息撤回：[${data.group_id}，${data.user_id}] ${data.message_id}`)
         } else {
@@ -233,6 +237,16 @@ class Shamrock {
         Bot[this.id].gml.set(data.group_id, gml)
         break
       }
+      case 'friend_recall':
+        data.sub_type = 'recall'
+        data.notice_type = 'friend'
+        try {
+          let fl = Bot[this.id].fl.get(data.user_id)
+          data = { ...data, ...fl }
+        } catch { }
+        common.info(this.id, `好友消息撤回：[${data.user_name}(${data.user_id})] ${data.message_id}`)
+        /** 这里要单独传类型... */
+        return await Bot.emit('notice.friend', await this.ICQQEvent(data))
       default:
     }
     return await Bot.emit('notice', await this.ICQQEvent(data))
@@ -244,6 +258,13 @@ class Shamrock {
     switch (data.request_type) {
       case 'group': {
         data.tips = data.comment
+        try {
+          let gl = Bot[this.id].gl.get(data.group_id)
+          let fl = await Bot[this.id].api.get_stranger_info(Number(data.user_id))
+          data = { ...data, ...gl, ...fl }
+          data.group_id = Number(data.group_id)
+          data.user_id = Number(data.user_id)
+        } catch { }
         if (data.sub_type === 'add') {
           common.info(this.id, `[${data.user_id}]申请入群[${data.group_id}]: ${data.tips}`)
         } else {
@@ -568,6 +589,7 @@ class Shamrock {
        * @return {Promise<Awaited<unknown>[]>}
        */
       getChatHistory: async (msg_id, num, reply) => {
+        msg_id = Number(msg_id)
         let { messages } = await api.get_history_msg(this.id, 'private', user_id, null, num, msg_id)
         messages = messages.map(async m => {
           let result = await this.getMessage(m.message, null, reply)
@@ -791,15 +813,19 @@ class Shamrock {
     }
     /** 通知事件 */
     const noticePostType = async function () {
-      e.action = '戳了戳'
-      e.raw_message = `${e.operator_id} 戳了戳 ${e.user_id}`
-      /** 私聊字段 */
-      if (e?.sender_id) {
-        e.notice_type = 'private'
-        e.group = { ...this.pickGroup(group_id) }
-      } else {
-        e.notice_type = 'group'
+      if (e.sub_type === 'recall') {
         e.friend = { ...this.pickFriend(user_id) }
+      } else {
+        e.action = '戳了戳'
+        e.raw_message = `${e.operator_id} 戳了戳 ${e.user_id}`
+        /** 私聊字段 */
+        if (e?.sender_id) {
+          e.notice_type = 'group'
+          e.group = { ...this.pickGroup(group_id) }
+        } else {
+          e.notice_type = 'friend'
+          e.friend = { ...this.pickFriend(user_id) }
+        }
       }
     }
 
@@ -818,6 +844,13 @@ class Shamrock {
           break
         }
         case 'group': {
+          try {
+            let gl = Bot[this.id].gl.get(e.group_id)
+            let fl = await Bot[this.id].api.get_stranger_info(Number(e.user_id))
+            e = { ...e, ...gl, ...fl }
+            e.group_id = Number(data.group_id)
+            e.user_id = Number(data.user_id)
+          } catch { }
           e.approve = async (approve = true) => {
             if (e.flag) return await api.set_group_add_request(this.id, e.flag, e.sub_type, approve)
             if (e.sub_type === 'add') {
@@ -913,7 +946,7 @@ class Shamrock {
         case 'reply':
           if (reply) {
             source = await this.source(i, group_id)
-            if (source) {
+            if (source && group_id) {
               let qq = Number(source.sender.user_id)
               let text = source.sender.nickname
               message.unshift({ type: 'at', qq, text })
@@ -1117,6 +1150,7 @@ class Shamrock {
 
       source = {
         ...source,
+        time: source.message_id,
         seq: source.message_id,
         user_id: source.sender.user_id,
         message: raw_message,
