@@ -4,7 +4,7 @@ import { exec } from 'child_process'
 
 let state = false
 
-export class Restart extends plugin {
+export class AdapterRestart extends plugin {
   constructor (e = '') {
     super({
       name: '铃音-重启',
