@@ -89,7 +89,7 @@ class Shamrock {
           Bot.gl.set(data.group_id, group)
           Bot[this.id].gl.set(data.group_id, group)
           // 加载或刷新该群的群成员列表
-          await Bot[this.id]._loadGroupMemberList(data.group_id, this.id)
+          this.loadGroupMemberList(data.group_id)
         }
       }
     })().catch(common.error)
@@ -125,7 +125,7 @@ class Shamrock {
             }
           }
         }
-        break
+        return await Bot.emit('notice.group', await this.ICQQEvent(data))
       }
       case 'group_decrease': {
         data.notice_type = 'group'
@@ -144,7 +144,7 @@ class Shamrock {
             ? `成员[${data.user_id}]被[${data.operator_id}]踢出群聊：[${data.group_id}}]`
             : `成员[${data.user_id}]退出群聊[${data.group_id}}]`)
         }
-        break
+        return await Bot.emit('notice.group', await this.ICQQEvent(data))
       }
       case 'group_admin': {
         data.notice_type = 'group'
@@ -174,7 +174,7 @@ class Shamrock {
           }
           Bot[this.id].gml.set(data.group_id, { ...gml })
         }
-        break
+        return await Bot.emit('notice.group', await this.ICQQEvent(data))
       }
       case 'group_ban': {
         data.notice_type = 'group'
@@ -194,8 +194,8 @@ class Shamrock {
             : `成员[${data.target_id}]在群[${data.group_id}]被禁言${data.duration}秒`)
         }
         // 异步加载或刷新该群的群成员列表以更新禁言时长
-        Bot[this.id]._loadGroupMemberList(data.group_id, this.id)
-        break
+        this.loadGroupMemberList(data.group_id)
+        return await Bot.emit('notice.group', await this.ICQQEvent(data))
       }
       case 'notify':
         switch (data.sub_type) {
@@ -235,7 +235,7 @@ class Shamrock {
         user.card = data.card_new
         gml[data.user_id] = user
         Bot[this.id].gml.set(data.group_id, gml)
-        break
+        return await Bot.emit('notice.group', await this.ICQQEvent(data))
       }
       case 'friend_recall':
         data.sub_type = 'recall'
@@ -245,7 +245,6 @@ class Shamrock {
           data = { ...data, ...fl }
         } catch { }
         common.info(this.id, `好友消息撤回：[${data.user_name}(${data.user_id})] ${data.message_id}`)
-        /** 这里要单独传类型... */
         return await Bot.emit('notice.friend', await this.ICQQEvent(data))
       default:
     }
@@ -813,19 +812,23 @@ class Shamrock {
     }
     /** 通知事件 */
     const noticePostType = async function () {
-      if (e.sub_type === 'recall') {
-        e.friend = { ...this.pickFriend(user_id) }
-      } else {
-        e.action = '戳了戳'
-        e.raw_message = `${e.operator_id} 戳了戳 ${e.user_id}`
-        /** 私聊字段 */
-        if (e?.sender_id) {
-          e.notice_type = 'group'
-          e.group = { ...this.pickGroup(group_id) }
-        } else {
-          e.notice_type = 'friend'
-          e.friend = { ...this.pickFriend(user_id) }
+      if (e.sub_type === 'poke') {
+        e.action = e.poke_detail.action
+        e.raw_message = `${e.operator_id} ${e.action} ${e.user_id}`
+      }
+
+      if (e.group_id) {
+        e.notice_type = 'group'
+        e.group = { ...this.pickGroup(group_id) }
+        let fl = await Bot[this.id].api.get_stranger_info(Number(e.user_id))
+        e.member = {
+          ...fl,
+          card: fl?.nickname,
+          nickname: fl?.nickname
         }
+      } else {
+        e.notice_type = 'friend'
+        e.friend = { ...this.pickFriend(user_id) }
       }
     }
 
@@ -892,6 +895,8 @@ class Shamrock {
     /** 添加适配器标识 */
     e.adapter = 'shamrock'
 
+    /** 某些事件需要e.bot，走监听器没有。 */
+    e.bot = Bot[this.id]
     /** 保存消息次数 */
     try { common.recvMsg(this.id, e.adapter) } catch { }
     return e
@@ -1232,7 +1237,7 @@ class Shamrock {
           raw_message.push(`[${faceMap[Number(i.id)]}]`)
           break
         case 'text':
-          if (typeof value !== 'number' && !i.text.trim()) break
+          if (typeof i.text !== 'number' && !i.text.trim()) break
           message.push({ type: 'text', data: { text: i.text } })
           raw_message.push(i.text)
           break
