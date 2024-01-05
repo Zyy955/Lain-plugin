@@ -5,6 +5,7 @@ import get_urls from 'get-urls'
 import sizeOf from 'image-size'
 import fetch from 'node-fetch'
 import common from '../../lib/common/common.js'
+import Cfg from '../../lib/config/config.js'
 
 /**
 * 传入文件，返回Buffer
@@ -138,15 +139,16 @@ Bot.uploadQQ = async function (file, uin = Bot.uin) {
 */
 Bot.FileToUrl = async function (file, type = 'image') {
   const buffer = await Bot.Buffer(file, { http: type === 'video' })
-  const time = `${Date.now()}.${type === 'image' ? 'jpg' : (type === 'audio' ? 'mp3' : 'mp4')}`
-  fs.writeFileSync(process.cwd() + `/plugins/Lain-plugin/resources/QQBotApi/${time}`, buffer)
+  const name = `${Date.now()}.${type === 'image' ? 'jpg' : (type === 'audio' ? 'mp3' : 'mp4')}`
+  fs.writeFileSync(process.cwd() + `/plugins/Lain-plugin/resources/QQBotApi/${name}`, buffer)
 
   let width = 0
   let height = 0
   if (type === 'image') ({ width, height } = sizeOf(buffer))
 
-  const { port, QQBotImgIP, QQBotPort, QQBotImgToken } = Bot.lain.cfg
-  const url = `http://${QQBotImgIP}:${QQBotPort || port}/api/QQBot?token=${QQBotImgToken}&name=${time}`
+  const { port, baseIP, baseUrl } = Cfg.Server()
+  let url = `http://${baseIP}:${port}/api/QQBot?name=${name}`
+  if (baseUrl) url = baseUrl.replace(/\/$/, '') + `/api/QQBot?name=${name}`
   const md5 = crypto.createHash('md5').update(buffer).digest('hex').toUpperCase()
   return { width, height, url, md5 }
 }

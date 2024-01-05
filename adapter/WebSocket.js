@@ -7,6 +7,7 @@ import Cfg from '../lib/config/config.js'
 import shamrock from './shamrock/index.js'
 import ComWeChat from './WeChat/index.js'
 import { fileTypeFromBuffer } from 'file-type'
+import Cfg from '../lib/config/config.js'
 
 export default class WebSocket {
   constructor () {
@@ -47,10 +48,8 @@ export default class WebSocket {
 
     /** QQBotApi */
     app.get('/api/QQBot', async (req, res) => {
-      const { token, name } = req.query
+      const { name } = req.query
       common.mark('QQBotApi', `[收到请求] 访问文件：${name}`)
-      /** 检查令牌有效性 */
-      if (token !== Bot.lain.cfg.QQBotImgToken) return res.status(401).send('令牌无效')
       const _path = process.cwd() + `/plugins/Lain-plugin/resources/QQBotApi/${name}`
       if (!fs.existsSync(_path)) return res.status(404).send('啊咧，文件不存在捏')
 
@@ -70,7 +69,7 @@ export default class WebSocket {
           try {
             setTimeout(() => {
               if (fs.existsSync(_path)) fs.unlink(_path, (err) => { if (err) common.error('QQBotApi', err) })
-            }, Number(Bot.lain.cfg.QQBotDelFiles) * 100)
+            }, Number(Cfg.Server().InvalidTime) * 100)
           } catch { }
         }
       })
