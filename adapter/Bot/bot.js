@@ -261,6 +261,7 @@ Bot.FormatFile = async function (file) {
 * @param {array} exclude - 可选，需使用请传入数组，数组内为排除的url，即不返回数组内相近的url
 */
 Bot.getUrls = function (url, exclude = []) {
+  if (!Array.isArray(exclude)) exclude = [exclude]
   let urls = []
   /** 中文不符合url规范 */
   url = url.replace(/[\u4e00-\u9fa5]/g, '|')

@@ -195,46 +195,36 @@ export default class adapterQQBot {
   /** 转换格式给云崽处理 */
   async msg (data, isGroup) {
     let { self_id: tinyId, ...e } = data
+    e.data = data
     e.tiny_id = tinyId
     e.self_id = e.bot.config.appid
     e.sendMsg = data.reply
-    e.data = data
-    // let checkDisable = true
+    e.raw_message = e.raw_message.trim()
 
-    // for (let v of loader.priority) {
-    //   let p = new v.class(e)
-    //   p.e = e
-    //   /** 判断是否启用功能 */
-    //   if (!this.checkDisable(e, p)) {
-    //     checkDisable = false
-    //     return false
-    //   }
-    // }
+    /** 过滤事件 */
+    let priority = true
+    let raw_message = e.raw_message
+    if (e.group_id && raw_message) {
+      raw_message = this.hasAlias(raw_message, e, false)
+      raw_message = raw_message.replace(/^#?(\*|星铁|星轨|穹轨|星穹|崩铁|星穹铁道|崩坏星穹铁道|铁道)+/, '#星铁')
+    }
 
-    // if (!checkDisable) return false
+    for (let v of loader.priority) {
+      let p = new v.class(e)
+      p.e = e
+      /** 判断是否启用功能 */
+      if (!this.checkDisable(e, p, raw_message)) {
+        priority = false
+        return false
+      }
+    }
+
+    if (!priority) return false
 
     if (Bot[this.id].config.other.Prefix) {
       e.message.some(msg => {
         if (msg.type === 'text') {
-          if (msg.text.trim().startsWith('/')) {
-            msg.text = msg.text.trim().replace(/^\//, '#')
-            return true
-          }
-
-          /** 兼容前缀 */
-          let groupCfg = MiaoCfg.getGroup(e.group_id)
-          let alias = groupCfg.botAlias
-          if (!Array.isArray(alias)) {
-            alias = [alias]
-          }
-          for (let name of alias) {
-            if (msg.text.startsWith(name)) {
-              /** 先去掉前缀 再 / => # */
-              msg.text = lodash.trimStart(msg.text, name).trim().replace(/^\//, '#')
-              msg.text = name + msg.text
-              break
-            }
-          }
+          msg.text = this.hasAlias(msg.text, e)
           return true
         }
         return false
@@ -285,24 +275,59 @@ export default class adapterQQBot {
   }
 
   /** 判断是否启用功能 */
-  checkDisable (e, p) {
+  checkDisable (e, p, raw_message) {
     let groupCfg = Cfg.getGroup(e.self_id)
-    /** 走一遍正则 */
+    /** 白名单 */
     if (!lodash.isEmpty(groupCfg.enable)) {
-      if (groupCfg.enable.includes(p.name)) return true
-      logger.mark(`[Lain-plugin][${p.name}]功能已禁用`)
-      return false
+      if (groupCfg.enable.includes(p.name)) {
+        /** 判断当前传入的值是否符合正则 */
+        for (let i of p.rule) {
+          i = new RegExp(i.reg)
+          if (i.test(raw_message.trim())) {
+            return true
+          }
+        }
+        logger.mark(`[Lain-plugin][${p.name}]功能已禁用`)
+        return false
+      }
     }
 
     if (!lodash.isEmpty(groupCfg.disable)) {
       if (groupCfg.disable.includes(p.name)) {
-        logger.mark(`[Lain-plugin][${p.name}]功能已禁用`)
-        return false
+        /** 判断当前传入的值是否符合正则 */
+        for (let i of p.rule) {
+          i = new RegExp(i.reg)
+          if (i.test(raw_message.trim())) {
+            logger.mark(`[Lain-plugin][${p.name}]功能已禁用`)
+            return false
+          }
+        }
       }
-
-      return true
     }
     return true
+  }
+
+  /** 前缀处理 */
+  hasAlias (text, e, hasAlias = true) {
+    if (e.bot.config.other.Prefix && text.trim().startsWith('/')) {
+      return text.trim().replace(/^\//, '#')
+    }
+    /** 兼容前缀 */
+    let groupCfg = MiaoCfg.getGroup(e.group_id)
+    let alias = groupCfg.botAlias
+    if (!Array.isArray(alias)) {
+      alias = [alias]
+    }
+    for (let name of alias) {
+      if (text.startsWith(name)) {
+        /** 先去掉前缀 再 / => # */
+        text = lodash.trimStart(text, name).trim()
+        if (e.bot.config.other.Prefix) text = text.replace(/^\//, '#')
+        if (hasAlias) return name + text
+        return text
+      }
+    }
+    return text
   }
 
   /** 小兔崽子 */

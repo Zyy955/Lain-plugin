@@ -1,14 +1,12 @@
 # QQBot、QQ频道的过审模式、启用后非白名单群、频道只会响应白名单内的功能
 # 默认配置
 default:
-  AuditMode: false
   #只启用功能，配置后只有该功能才响应
   enable:
     - 帮助
 
 # 单独appid设置
 12345:
-  AuditMode: false
   #只启用功能，配置后只有该功能才响应
   enable:
     - 帮助
