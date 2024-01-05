@@ -1,8 +1,9 @@
-import { ShamrockRepoClient } from '../model/shamrock/shamrock.js'
-import Render from '../model/render.js'
-import common from '../lib/common/common.js'
 import fs from 'fs'
 import path from 'path'
+import common from '../lib/common/common.js'
+import Cfg from '../lib/config/config.js'
+import Render from '../model/render.js'
+import { ShamrockRepoClient } from '../model/shamrock/shamrock.js'
 
 export class shamrock extends plugin {
   constructor () {
@@ -29,7 +30,7 @@ export class shamrock extends plugin {
     try {
       let version = Bot[e.self_id].version.version
       let qqVer = Bot[e.self_id].apk.version
-      let client = new ShamrockRepoClient(Bot.lain.cfg.githubKey)
+      let client = new ShamrockRepoClient(Cfg.Shamrock.githubKey)
       let versionBehindBeta = await client.getVersionBehind(version, 'beta')
       let versionBehindRelease = await client.getVersionBehind(version, 'release')
       let releases = await client.getRelease(3, true)
@@ -61,7 +62,7 @@ export class shamrock extends plugin {
     let filePath
     if (!e.msg.includes('测试')) {
       // release
-      let client = new ShamrockRepoClient(Bot.lain.cfg.githubKey)
+      let client = new ShamrockRepoClient(Cfg.Shamrock.githubKey)
       let releases = await client.getRelease(1, true)
       let release = releases[0]
       let allAssets = release.assets.find(a => a.name.includes('all'))
@@ -83,11 +84,11 @@ export class shamrock extends plugin {
       }
     } else {
       // beta
-      if (!Bot.lain.cfg.githubKey) {
+      if (!Cfg.Shamrock.githubKey) {
         await e.reply('未配置github access token无法下载最新测试版shamrock')
         return
       }
-      let client = new ShamrockRepoClient(Bot.lain.cfg.githubKey)
+      let client = new ShamrockRepoClient(Cfg.Shamrock.githubKey)
       let actions = await client.getActions(10)
       let latestAll = actions.artifacts.find(a => a.name.includes('all'))
       let url = latestAll.archive_download_url
@@ -100,7 +101,7 @@ export class shamrock extends plugin {
         await e.reply('开始下载安装包 ' + name + '.zip', true)
         // todo move to client
         try {
-          filePath = await common.downloadFile(url, 'shamrock/beta/' + name + '.zip', { Authorization: `bearer ${Bot.lain.cfg.githubKey}` })
+          filePath = await common.downloadFile(url, 'shamrock/beta/' + name + '.zip', { Authorization: `bearer ${Cfg.Shamrock.githubKey}` })
         } catch (err) {
           console.error(err)
           await e.reply('安装包下载错误：' + err.message)

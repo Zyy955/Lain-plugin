@@ -286,3 +286,47 @@ Bot.getUrls = function (url, exclude = []) {
   })
   return [...urls]
 }
+
+/**
+ * 快速生成md模板按钮
+ * @param {array} list
+ * @param {number} line 每行显示的按钮个数，默认3
+ *
+ * 举例：
+ * list =[
+      { label: '再来一题', data: '随机一题' },
+      { label: '查看题解' },
+      { label: '今日一题', data: '今日一题', enter: true },
+      { label: '今日一题', data: '今日一题', permission: { type:1, specify_user_ids:[] } }
+    ]
+ */
+Bot.Button = function (list, line = 3) {
+  let button = []
+  let arr = []
+  let index = 1
+  for (const i of list) {
+    arr.push({
+      id: String(Date.now()),
+      render_data: {
+        label: i.label,
+        style: i.style || 1
+      },
+      action: {
+        type: i.type || 2,
+        permission: i.permission || { type: 2 },
+        data: i.data || i.label,
+        enter: i.enter || false,
+        unsupport_tips: '暂不支持~'
+      }
+    })
+    if (index % line == 0 || index == list.length) {
+      button.push({
+        type: 'button',
+        buttons: arr
+      })
+      arr = []
+    }
+    index++
+  }
+  return button
+}
