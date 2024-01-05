@@ -68,7 +68,7 @@ export default class WebSocket {
           try {
             setTimeout(() => {
               if (fs.existsSync(_path)) fs.unlink(_path, (err) => { if (err) common.error('QQBotApi', err) })
-            }, Number(Cfg.Server().InvalidTime) * 100)
+            }, Number(Cfg.Server.InvalidTime) * 100)
           } catch { }
         }
       })

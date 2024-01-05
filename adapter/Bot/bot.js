@@ -146,7 +146,7 @@ Bot.FileToUrl = async function (file, type = 'image') {
   let height = 0
   if (type === 'image') ({ width, height } = sizeOf(buffer))
 
-  const { port, baseIP, baseUrl } = Cfg.Server()
+  const { port, baseIP, baseUrl } = Cfg.Server
   let url = `http://${baseIP}:${port}/api/QQBot?name=${name}`
   if (baseUrl) url = baseUrl.replace(/\/$/, '') + `/api/QQBot?name=${name}`
   const md5 = crypto.createHash('md5').update(buffer).digest('hex').toUpperCase()
