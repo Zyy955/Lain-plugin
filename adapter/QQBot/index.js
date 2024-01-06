@@ -619,6 +619,12 @@ export default class adapterQQBot {
       logger.error('自定义视频服务器调用错误，已跳过')
     }
 
+    /** 现成url直接发 */
+    if (/^http(s)?:\/\//.test(file)) {
+      common.mark('Lain-plugin', `在线视频：${file}`)
+      return { type, file }
+    }
+
     /** 公网 */
     const { url } = await Bot.FileToUrl(file, type)
     common.mark('Lain-plugin', `使用公网临时服务器：${url}`)
@@ -668,7 +674,7 @@ export default class adapterQQBot {
     }
 
     /** 公网 */
-    const { url } = await Bot.FileToUrl(file, type)
+    const { url } = await Bot.FileToUrl(`file://${silk}`, type)
     common.mark('Lain-plugin', `使用公网临时服务器：${url}`)
     return { type, file: url }
   }

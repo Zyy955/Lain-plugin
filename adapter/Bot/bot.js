@@ -138,7 +138,7 @@ Bot.uploadQQ = async function (file, uin = Bot.uin) {
 *   - {string} md5 - 文件的MD5哈希值
 */
 Bot.FileToUrl = async function (file, type = 'image') {
-  const buffer = await Bot.Buffer(file, { http: type === 'video' })
+  const buffer = await Bot.Buffer(file)
   const name = `${Date.now()}.${type === 'image' ? 'jpg' : (type === 'audio' ? 'mp3' : 'mp4')}`
   fs.writeFileSync(process.cwd() + `/plugins/Lain-plugin/resources/QQBotApi/${name}`, buffer)
 
