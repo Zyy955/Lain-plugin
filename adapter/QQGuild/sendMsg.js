@@ -115,7 +115,7 @@ export default class SendMsg {
         }, async (err, buffer) => {
           if (err) reject(err)
           const base64 = 'base64://' + buffer.toString('base64')
-          const Uint8Array = await common.Rending({ base64, link }, 'QRCode/QRCode.html')
+          const Uint8Array = await common.Rending({ base64, link }, 'QRCode/QRCode')
           const Api_msg = { content: '', type: 'file_image', image: Uint8Array, log: '{image：base64://...}' }
           /** 转换的二维码连接是否撤回 */
           const qr = Number(Bot.lain.cfg.recallQR) || 0

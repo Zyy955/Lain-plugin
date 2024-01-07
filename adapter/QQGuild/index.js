@@ -253,7 +253,7 @@ export default class guild {
 
   /** 判断频道黑白名单 */
   checkBlack (guild_id, channel_id) {
-    const config = Cfg.QQGuild(guild_id)
+    const config = Cfg.getQQGuild(guild_id)
     /** 过白名单频道 */
     if (Array.isArray(config.whiteGuild) && config.whiteGuild.length > 0) {
       return config.whiteGuild.includes(String(guild_id))

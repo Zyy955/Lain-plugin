@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <link rel="shortcut icon" href="#" />
+  <link rel="preload" href="../../../../plugins/miao-plugin/resources/common/font/HYWH-65W.woff" as="font"
+    type="font/woff">
+  <link rel="preload" href="../../../../plugins/miao-plugin/resources/common/font/NZBZ.woff" as="font"
+    type="font/woff">
+  <link rel="preload" href="../../../../plugins/miao-plugin/resources/common/font/tttgbnumber.woff" as="font"
+    type="font/woff">
+  <link rel="stylesheet" type="text/css" href="../../../../plugins/miao-plugin/resources/common/common.css" />
+  <title>Lain-plugin</title>
+  <link rel="stylesheet" type="text/css" href="../../../../plugins/Lain-plugin/resources/admin/index.css" />
+  
+</head>
+
+<body class="elem-hydro default-mode " style=transform:scale(1.4)>
+  <div class="container" id="container">
+    {{if head }} {{@head}} {{/if}}
+
+    {{each box i}}
+    {{@i}}
+    {{/each}}
+
+    {{if copyright }} {{@copyright}} {{/if}}
+  </div>
+  <div>?</div>
+</body>
+
+</html>

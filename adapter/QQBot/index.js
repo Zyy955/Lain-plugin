@@ -395,7 +395,7 @@ export default class adapterQQBot {
         }, async (err, buffer) => {
           if (err) reject(err)
           const base64 = 'base64://' + buffer.toString('base64')
-          const Uint8Array = await common.Rending({ base64, link }, 'QRCode/QRCode.html')
+          const Uint8Array = await common.Rending({ base64, link }, 'QRCode/QRCode')
           message.push(await this.getImage(Uint8Array))
           msg = msg.replace(link, '[链接(请扫码查看)]')
           msg = msg.replace(link.replace(/^http:\/\//g, ''), '[链接(请扫码查看)]')

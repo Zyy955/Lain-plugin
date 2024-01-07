@@ -1,9 +1,6 @@
 import YAML from '../model/yaml.js'
 import common from '../lib/common/common.js'
 import Cfg from '../lib/config/config.js'
-import moment from 'moment'
-
-console.log(moment().format('YYYY-MM-DD HH:mm:ss'))
 
 export class adapter extends plugin {
   constructor () {
@@ -34,7 +31,7 @@ export class adapter extends plugin {
           permission: 'master'
         },
         {
-          reg: /^#QQ(群|Bot|频道)设置(QQ图床|前缀).+/i,
+          reg: /^#QQ(群|Bot|频道)设置(QQ图床|前缀|防倒卖(群号)?).+/i,
           fnc: 'other',
           permission: 'master'
         }
@@ -124,7 +121,7 @@ export class adapter extends plugin {
   async account () {
     let list = []
     if (this.e.isGroup) return await this.reply('请私聊查看', true, { at: true })
-    let token = Object.values(Cfg.token())
+    let token = Object.values(Cfg.getToken())
 
     // if (!Array.isArray(token)) token = [token] // 感觉没啥必要。
     if (!token.length) return await this.reply('当前还没有绑定过账号~', true, { at: true })
@@ -231,5 +228,37 @@ export class adapter extends plugin {
       }
     }
     return await this.reply('修改成功~', true, { at: true })
+  }
+
+  /** 其他 */
+  async other () {
+    const msg = this.e.msg.replace(/^#QQ(群|Bot|频道)设置(QQ图床|前缀|防倒卖(群号)?)/i, '').replace(/：/g, ':').trim().split(':')
+    const cfg = new YAML(lain._pathCfg + '/token.yaml')
+    if (msg.length != 1 && msg.length != 2) return await this.reply('格式错误!', true, { at: true })
+
+    let self_id
+    if (msg.length == 2) {
+      self_id = msg[0]
+    } else {
+      if (this.e?.adapter === 'QQBot') self_id = this.e.self_id
+      return await this.reply('格式错误!', true, { at: true })
+    }
+    if (cfg.value('token', self_id)) {
+      let val = cfg.get('token')
+      if (this.e.msg.includes('图床')) {
+        val[self_id].other.QQ = Number(msg[1] || msg[0])
+      } else if (this.e.msg.includes('前缀')) {
+        val[self_id].other.Prefix = (msg[1] || msg[0]) === '开启'
+      } else if (this.e.msg.includes('防倒卖群号')) {
+        val[self_id].other.Tips = Number(msg[1] || msg[0]) || String(msg[1] || msg[0])
+      } else if (this.e.msg.includes('防倒卖')) {
+        val[self_id].other['Tips-GroupId'] = Number(msg[1] || msg[0]) || String(msg[1] || msg[0])
+      }
+      /** 保存 */
+      cfg.set('token', val)
+      /** 渲染 */
+    } else {
+      return await this.reply('不存在此appid对应的bot!', true, { at: true })
+    }
   }
 }

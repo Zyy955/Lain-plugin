@@ -1,6 +1,7 @@
 import { randomUUID } from 'crypto'
 import common from '../../lib/common/common.js'
 import fetch, { fileFromSync, FormData } from 'node-fetch'
+import Cfg from '../../lib/config/config.js'
 
 let api = {
   /**
@@ -587,15 +588,15 @@ let api = {
   },
 
   async httpApi (id, action, headers, data, query = '') {
-    if (!Bot.lain.cfg.baseUrl || !Bot.lain.cfg.baseUrl.startsWith('http')) {
+    if (!Cfg.Shamrock.baseUrl || !Cfg.Shamrock.baseUrl.startsWith('http')) {
       return common.warn(id, '未配置Shamrock主动http端口')
     }
     if (!headers) {
       headers = {}
     }
     headers['User-Agent'] = 'Lain-Plugin/1.3.3'
-    let baseUrl = Bot.lain.cfg.baseUrl
-    let token = Bot.lain.cfg.token
+    let baseUrl = Cfg.Shamrock.baseUrl
+    let token = Cfg.Shamrock.token
     if (token) {
       headers.Authorization = `Bearer ${token}`
     }

@@ -21,8 +21,8 @@ adapter.push(async function stdin () {
 
 /** QQBot适配器 */
 adapter.push(async function QQBot () {
-  if (Object.values(Cfg.token()).length) {
-    Object.values(Cfg.token()).forEach(async bot => {
+  if (Object.values(Cfg.getToken()).length) {
+    Object.values(Cfg.getToken()).forEach(async bot => {
       if (bot.model == 0 || bot.model == 2) {
         try {
           const StartQQBot = (await import('./QQBot/index.js')).default
@@ -37,8 +37,8 @@ adapter.push(async function QQBot () {
 
 /** 加载QQ频道适配器 */
 adapter.push(async function QQGuild () {
-  if (Object.values(Cfg.token()).length) {
-    Object.values(Cfg.token()).forEach(async bot => {
+  if (Object.values(Cfg.getToken()).length) {
+    Object.values(Cfg.getToken()).forEach(async bot => {
       if (bot.model == 0 || bot.model == 1) {
         try {
           /** 同时创建连接会出bug...sbTX */

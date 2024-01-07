@@ -366,7 +366,7 @@ async function Rending (data, _path) {
     saveId: name,
     adapter: Bot.lain.adapter,
     _plugin: 'Lain-plugin',
-    tplFile: `./plugins/Lain-plugin/resources/${_path}`
+    tplFile: `./plugins/Lain-plugin/resources/${_path}.html`
   }
   const msg = await puppeteer.screenshot(`Lain-plugin/${name}`, data)
   return msg.file
